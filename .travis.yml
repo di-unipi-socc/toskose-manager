@@ -1,0 +1,31 @@
+sudo: required
+
+dist: xenial   # required for Python >= 3.7
+language: python
+python:
+  - "3.7"
+  - "3.7-dev"  # 3.7 development branch
+  - "3.8-dev"  # 3.8 development branch
+  - "nightly"  # nightly build
+
+services:
+  - docker
+
+install:
+  - pip install -r requirements.txt
+
+script:
+  - pytest
+
+after_success:
+  - docker --version
+  - export VERSION=$(python -c "import app; print(app.__version__)")
+  - export IMAGE_NAME=diunipisocc/toskose-manager
+  - |
+    docker build \
+    --build-arg APP_VERSION=${VERSION} \
+    -t $IMAGE_NAME:${VERSION} \
+    -t $IMAGE_NAME:latest \
+    .
+  - docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS
+  - docker push $IMAGE_NAME
