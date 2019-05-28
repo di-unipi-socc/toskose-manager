@@ -1,9 +1,9 @@
 import os
 import sys
-import toml
+#import toml
 import socket
-from toml import TomlDecodeError
-from schema import Schema, And, Use, Optional, SchemaError
+#from toml import TomlDecodeError
+#from schema import Schema, And, Use, Optional, SchemaError
 
 from app.config import AppConfig
 from app.client.client import ToskoseClientFactory
@@ -70,40 +70,42 @@ class ToskoseManager():
         return config_path
 
     def parse_config(self, config_path):
-        """ Parse the configuration """
+        pass
+    #     """ Parse the configuration """
 
-        config = None
-        try:
-            with open(config_path, 'r') as f:
+    #     config = None
+    #     try:
+    #         with open(config_path, 'r') as f:
 
-                logger.info('Parsing configuration file {0}' \
-                    .format(self._config_path))
+    #             logger.info('Parsing configuration file {0}' \
+    #                 .format(self._config_path))
 
-                config = toml.load(f, _dict=dict)
+    #             config = toml.load(f, _dict=dict)
 
-        except TypeError as err:
-            sys.exit('failed to open the configuration file {0}' \
-                .format(self._config_path))
-        except TomlDecodeError as err:
-            sys.exit('failed to parse the configuration file {0}\nError: {1}' \
-                .format(self._config_path, err))
-        return config
+    #     except TypeError as err:
+    #         sys.exit('failed to open the configuration file {0}' \
+    #             .format(self._config_path))
+    #     except TomlDecodeError as err:
+    #         sys.exit('failed to parse the configuration file {0}\nError: {1}' \
+    #             .format(self._config_path, err))
+    #     return config
 
     def __validate_config(self, config):
-        """ Validate the configuration """
+        pass
+        # """ Validate the configuration """
 
-        """ Validate Nodes """
-        nodes = config.get('nodes')
-        if not nodes:
-            sys.exit('ERROR! missing nodes field (required)')
+        # """ Validate Nodes """
+        # nodes = config.get('nodes')
+        # if not nodes:
+        #     sys.exit('ERROR! missing nodes field (required)')
 
-        """ Validate node fields """
-        # for node in nodes:
-        #     try:
-        # TODO USING SCHEMA LIB
+        # """ Validate node fields """
+        # # for node in nodes:
+        # #     try:
+        # # TODO USING SCHEMA LIB
 
 
-        return config
+        # return config
 
     @property
     def nodes(self):
@@ -126,7 +128,7 @@ class ToskoseManager():
         """
 
         if not node_id:
-            if not host or not port:
+            if not hostname or not port:
                 raise ValueError('hostname and port must be given')
             else:
                 for node_id, node_data in self._nodes.items():
