@@ -5,3 +5,5 @@ flask-bcrypt==0.7.1
 pyjwt==1.7.1
 gunicorn==19.9.0
 schema==0.6.8
+pytest
+mock
