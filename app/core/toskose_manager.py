@@ -38,7 +38,7 @@ class ToskoseManager():
         else:
             ToskoseManager.__instance = self
 
-        self.load(config_path)
+        #self.load(config_path) # TODO tmporary blocked (need to replace with .yml)
 
     def load(self, config_path=None):
         self._config_path = self.load_config(config_path)

@@ -22,8 +22,8 @@ class AppConfig(object):
     _LOGS_CONFIG_NAME = 'logging.conf'
     _LOGS_PATH = os.environ.get('TOSKOSE_LOGS_PATH')
 
-    _APP_CONFIG_NAME = 'toskose.toml'
-    _APP_CONFIG_PATH = os.environ.get('TOSKOSE_APP_CONFIG_PATH')
+    _APP_CONFIG_PATH = os.environ.get('TOSKOSE_CONFIG_PATH')
+    _APP_MANIFEST_PATH = os.environ.get('TOSKOSE_MANIFEST_PATH')
     _APP_MODE = os.environ.get('TOSKOSE_APP_MODE', default='development')
 
     _APP_VERSION = os.environ.get('TOSKOSE_APP_VERSION')
