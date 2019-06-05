@@ -4,12 +4,14 @@ ARG APP_VERSION
 FROM python:${PYTHON_VERSION}-slim as base
 ARG APP_VERSION
 ENV TOSKOSE_MANAGER_PORT=10000
+ENV TOSKOSE_LOGS_PATH=/logs/toskose
 ENV TOSKOSE_APP_VERSION=${APP_VERSION}
 
 WORKDIR /toskose
 COPY . .
 
 RUN apt-get update -qq \
+    && mkdir -p ${TOSKOSE_LOGS_PATH} \
     && apt-get install -y --no-install-recommends \
     dnsutils \
     > /dev/null \
