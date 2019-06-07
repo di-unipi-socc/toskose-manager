@@ -2,7 +2,7 @@
 version: '3.3'
 services:
   maven:
-    image: thinking-maven-toskosed:1.0
+    image: giulen/thinking-maven-toskosed:latest
     deploy: &id001
       mode: replicated
       replicas: 1
@@ -29,7 +29,7 @@ services:
     ports:
     - "8080:8000/tcp"
   node:
-    image: thinking-node-toskosed:2.1
+    image: giulen/thinking-node-toskosed:latest
     deploy: *id001
     networks: *id002
     container_name: thinking-node
@@ -48,7 +48,7 @@ services:
     ports:
     - "3000:8080/tcp"
   mongodb:
-    image: thinking-mongodb-toskosed:0.5
+    image: giulen/thinking-mongodb-toskosed:latest
     deploy: *id001
     networks: *id002
     container_name: thinking-mongodb
@@ -56,7 +56,7 @@ services:
     volumes:
     - "dbvolume:/data/db"
   toskose-manager:
-    image: thinking-manager:1.0
+    image: giulen/thinking-manager:latest
     deploy: *id001
     networks: *id002
     container_name: thinking-toskose-manager
