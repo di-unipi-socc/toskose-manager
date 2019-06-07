@@ -3,6 +3,11 @@ version: '3.3'
 services:
   maven:
     image: thinking-maven-toskosed:1.0
+    deploy: &id001
+      mode: replicated
+      replicas: 1
+      restart_policy:
+        condition: "on-failure"
     networks: &id002
     - "toskose-network"
     container_name: thinking-maven
@@ -25,6 +30,7 @@ services:
     - "8080:8000/tcp"
   node:
     image: thinking-node-toskosed:2.1
+    deploy: *id001
     networks: *id002
     container_name: thinking-node
     hostname: node
@@ -43,6 +49,7 @@ services:
     - "3000:8080/tcp"
   mongodb:
     image: thinking-mongodb-toskosed:0.5
+    deploy: *id001
     networks: *id002
     container_name: thinking-mongodb
     hostname: mongodb
@@ -50,6 +57,7 @@ services:
     - "dbvolume:/data/db"
   toskose-manager:
     image: thinking-manager:1.0
+    deploy: *id001
     networks: *id002
     container_name: thinking-toskose-manager
     hostname: manager
