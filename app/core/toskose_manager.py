@@ -1,23 +1,22 @@
 import os
 import sys
-#import toml
 import socket
-#from toml import TomlDecodeError
-#from schema import Schema, And, Use, Optional, SchemaError
+import shutil
 
-from app.config import AppConfig
+from app.config import AppConfig, ToskoseConfig
 from app.client.client import ToskoseClientFactory
 from app.core.logging import LoggingFacility
+from app.core.loader import Loader
+from app.core.exceptions import ValidationError, MalformedConfigurationError, \
+                                FatalError, ConfigurationError
+from app.validation import validate_configuration
+from app.tosca.parser import ToscaParser
 
 
 logger = LoggingFacility.get_instance().get_logger()
 
 
-class MissingConfigurationDataError(Exception):
-    """ Raised when there are some missing data in the app configuration """
-
-    def __init__(self, message):
-        super().__init__(message)
+SUPPORTED_CONFIGURATION_EXTENSIONS = ['.YAML', '.YML']
 
 
 class ToskoseManager():
@@ -32,84 +31,117 @@ class ToskoseManager():
             ToskoseManager()
         return ToskoseManager.__instance
 
-    def __init__(self, config_path=None):
+    def __init__(self):
         if ToskoseManager.__instance != None:
             raise Exception('This is a singleton')
         else:
             ToskoseManager.__instance = self
 
-        #self.load(config_path) # TODO tmporary blocked (need to replace with .yml)
+        self._loader = Loader()
+        self._config = None
+        self._manifest = None
+        self._model = None
 
-    def load(self, config_path=None):
-        self._config_path = self.load_config(config_path)
-        self._config = self.parse_config(self._config_path)
-        self._config = self.__validate_config(self._config)
-        self._nodes = self._config.get('nodes')
+    @staticmethod
+    def _load_configurations(config_dir, config_name=None):
 
-    def load_config(self, config_path=None):
-        """ Load the configuration file """
+        if config_name is None:
+            configs = []
+            for file in os.listdir(config_dir):
+                if file.upper().endswith(tuple(SUPPORTED_CONFIGURATION_EXTENSIONS)):
+                    configs.append(file)
 
-        if not config_path or not os.path.exists(config_path):
-            """ no manual path fetched or it is not valid """
+            if len(configs) > 1:
+                logger.warn('Multiple configurations detected in {}'.format(config_dir))
+                logger.warn('No configuration specified, selected the first one {}'.format(configs[0]))
+            elif len(configs) == 1:
+                logger.info('Detected configuration {}'.format(file))
+            else:
+                logger.error('No configurations detected. Abort.')
+                raise FatalError('A fatal error is occurred. See logs for further details.')
 
-            config_path = AppConfig._APP_CONFIG_PATH
-            logger.info('detected configuration {0}'.format(config_path))
+            config_path = os.path.join(config_dir, configs[0])
 
-            if not config_path or not os.path.exists(config_path):
-                if AppConfig._APP_MODE == 'development':
-                    """ env variable not valid, just load a test config """
-
-                    config_path = \
-                        os.path.join(
-                            os.path.abspath('./resources/config'),
-                            AppConfig._APP_CONFIG_NAME)
-                else:
-                    sys.exit('missing configuration file {0}'.format(
-                        AppConfig._APP_CONFIG_NAME))
+        else:
+            config_path = os.path.join(config_dir, config_name)
+            if not os.path.exists(config_path):
+                raise ValueError('Configuration {} doesnt exists'.format(config_path))
 
         return config_path
 
-    def parse_config(self, config_path):
+    def _cross_validation(config, manifest):
+        """ Validate the configuration file against the TOSCA model. 
+        
+        e.g. check if the nodes are the same
+        """
         pass
-    #     """ Parse the configuration """
+        # TODO
 
-    #     config = None
-    #     try:
-    #         with open(config_path, 'r') as f:
+    def _merge_imports(manifest_dir):
+        
+        imports_dir = os.path.join(manifest_dir, 'imports')
+        if not os.path.exists(imports_dir):
+            raise FatalError('missing tosca imports dir')
 
-    #             logger.info('Parsing configuration file {0}' \
-    #                 .format(self._config_path))
+        for file in os.listdir(imports_dir):
+            shutil.move(os.path.join(imports_dir, file), manifest_dir)
 
-    #             config = toml.load(f, _dict=dict)
+        shutil.rmtree(imports_dir, ignore_errors=True)
+        
+    def load(self, config_dir=None, config_name=None, manifest_dir=None, manifest_name=None):
+        """ Load the configuration files. """
 
-    #     except TypeError as err:
-    #         sys.exit('failed to open the configuration file {0}' \
-    #             .format(self._config_path))
-    #     except TomlDecodeError as err:
-    #         sys.exit('failed to parse the configuration file {0}\nError: {1}' \
-    #             .format(self._config_path, err))
-    #     return config
+        if config_dir is None:
+            config_dir = ToskoseConfig.APP_CONFIG_PATH
+        if manifest_dir is None:
+            manifest_dir = ToskoseConfig.APP_MANIFEST_PATH
 
-    def __validate_config(self, config):
-        pass
-        # """ Validate the configuration """
+        config_path = ToskoseManager._load_configurations(config_dir, config_name)
+        manifest_path = ToskoseManager._load_configurations(manifest_dir, manifest_name)
 
-        # """ Validate Nodes """
-        # nodes = config.get('nodes')
-        # if not nodes:
-        #     sys.exit('ERROR! missing nodes field (required)')
+        try:
+            self._config = validate_configuration(self._loader.load(config_path))
 
-        # """ Validate node fields """
-        # # for node in nodes:
-        # #     try:
-        # # TODO USING SCHEMA LIB
+            # workaround
+            # inside the manifest path there is the "imports" subdir containing
+            # all the imports described in the section "imports" of the tosca manifest
+            # toscaparser want imports and manifest in the same folder for building the model.
+            ToskoseManager._merge_imports(manifest_dir)
 
-
-        # return config
-
+            self._model = ToscaParser().build_model(manifest_path)
+            ToskoseManager._cross_validation(self._config, self._model)
+        except (ValidationError, MalformedConfigurationError) as err:
+            # re-raise to send error through the API
+            if self._config is None:
+                msg = 'The configuration file {} is invalid or corrupted'.format(
+                    os.path.basename(config_path))
+            if self._manifest is None:
+                msg = 'The TOSCA manifest file {} is invalid or corrupted'.format(
+                    os.path.basename(manifest_path))
+            raise ConfigurationError(msg)
+        
     @property
     def nodes(self):
-        return self._nodes
+        return self._config['nodes']
+
+    def get_client(self, node_id):
+
+        if node_id not in self._config['nodes']:
+            raise ValueError('node {} not exist'.format(node_id))
+
+        logger.debug('Requested client instance for node {}'.format(node_id))
+        resolved_host = socket.gethostbyname(self.nodes[node_id]['hostname'])
+        logger.debug('The hostname for the node {0} is {1}'.format(node_id, resolved_host))
+
+        node_config = self._config['nodes'][node_id]
+
+        return ToskoseClientFactory.create(
+                    type=AppConfig._CLIENT_PROTOCOL,
+                    host=resolved_host,
+                    port=node_config['port'],
+                    username=node_config['user'],
+                    password=node_config['password']
+                )
 
     def get_node_data(self, *, node_id=None, hostname=None, port=None):
         """ returns the configuration file data associated to the node
@@ -131,35 +163,15 @@ class ToskoseManager():
             if not hostname or not port:
                 raise ValueError('hostname and port must be given')
             else:
-                for node_id, node_data in self._nodes.items():
+                for node_id, node_data in self.nodes.items():
                     if node_data.get('hostname') == hostname and \
                         node_data.get('port') == port:
                         return node_id, node_data
-                raise MissingConfigurationDataError('no data for the node {0}' \
+                raise FatalError('no data for the node {0}' \
                     .format(node_id))
 
-        node_data = self._nodes.get(node_id)
+        node_data = self.nodes.get(node_id)
         if not node_data:
-            raise MissingConfigurationDataError('node {0} not found' \
+            raise FatalError('node {0} not found' \
                 .format(node_id))
         return node_id, node_data
-
-    def get_node_client_instance(self, node_id):
-        """ returns the client instance for a node """
-
-        node = self._nodes.get(node_id)
-        if not node:
-            raise MissingConfigurationDataError('node {0} not found' \
-                .format(node_id))
-
-        """ assuming node fields are previously validated """
-        resolved_host = socket.gethostbyname(node['hostname'])
-        # logger.info('resolved {0} in {1}'.format(node['hostname'],resolved_host))
-
-        return ToskoseClientFactory.create(
-            type=AppConfig._CLIENT_PROTOCOL,
-            host=resolved_host,
-            port=node['port'],
-            username=node['username'],
-            password=node['password']
-        )
