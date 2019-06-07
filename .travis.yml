@@ -13,12 +13,14 @@ services:
 install:
   - pip install -r requirements.txt
 
+before_install:
+  - docker --version
+  - docker swarm init # deploy section and overlay network need swarm initialized
+
 script:
   - pytest
 
 after_success:
-  - docker --version
-  - docker swarm init # deploy section and overlay network need swarm initialized
   - export VERSION=$(python -c "import app; print(app.__version__)")
   - export IMAGE_NAME=diunipisocc/toskose-manager
   - |
