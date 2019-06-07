@@ -65,7 +65,7 @@ class NodeService(BaseService):
 
             is_reacheable = True
             try:
-                client = ToskoseManager.get_instance().get_node_client_instance(node_id)
+                client = ToskoseManager.get_instance().get_client(node_id)
                 client.get_identification()
             except SupervisordClientConnectionError as conn_err:
                 is_reacheable = False

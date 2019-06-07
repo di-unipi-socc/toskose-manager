@@ -11,6 +11,7 @@ from flask_bcrypt import Bcrypt
 from app.config import AppConfig
 from app.config import configs
 
+from app.core.exceptions import FatalError
 from app.core.logging import LoggingFacility
 from app.core.toskose_manager import ToskoseManager
 
@@ -51,16 +52,21 @@ if __name__ == "__main__":
     """ Logging """
     LoggingFacility()
 
-    """ Load App Configuration
+    try:
 
-    ToskoseManager is initialized for the first time here, then it can be
-    used overall the application environment by calling the singleton instance
-    from the class.
-    """
-    ToskoseManager()
+        """ Load App Configuration
 
-    """ Create the Flask Application with the application factory"""
-    flask_app = create_app()
+        ToskoseManager is initialized for the first time here, then it can be
+        used overall the application environment by calling the singleton instance
+        from the class.
+        """
+        ToskoseManager().get_instance().load()
 
-    flask_app.app_context().push()
-    flask_app.run()
+        """ Create the Flask Application with the application factory"""
+        flask_app = create_app()
+
+        flask_app.app_context().push()
+        flask_app.run()
+
+    except FatalError as err:
+        sys.exit(1)
