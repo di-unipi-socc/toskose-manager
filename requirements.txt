@@ -5,5 +5,8 @@ flask-bcrypt==0.7.1
 pyjwt==1.7.1
 gunicorn==19.9.0
 schema==0.6.8
+ruamel.yaml==0.15.94
+jsonschema==3.0.1
+tosca-parser==1.4.0
 pytest
 mock

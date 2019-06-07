@@ -2,7 +2,15 @@ import os
 import sys
 
 
-_default_flask_secret_key = 'to-iterate-is-human-to-recurse-divine'
+DEFAULT_FLASK_SECRET_KEY = 'to-iterate-is-human-to-recurse-divine'
+
+DEFAULT_CONFIG_PATH = '/toskose/config'
+DEFAULT_MANIFEST_PATH = '/toskose/manifest'
+DEFAULT_LOGS_PATH = '/logs/toskose'
+DEFAULT_APP_VERSION = 'Unknown'
+DEFAULT_APP_MODE = 'development'
+
+DEFAULT_CLIENT_PROTOCOL = 'XMLRPC'
 
 
 class AppConfig(object):
@@ -17,24 +25,22 @@ class AppConfig(object):
     _APP_VERSION: the version of Toskose Manager (will be visualized in the API Documentation)
     """
 
-    _CLIENT_PROTOCOL = os.environ.get('TOSKOSE_CLIENT_PROTOCOL', default='XMLRPC')
+    _CLIENT_PROTOCOL = os.environ.get('TOSKOSE_CLIENT_PROTOCOL', DEFAULT_CLIENT_PROTOCOL)
 
     _LOGS_CONFIG_NAME = 'logging.conf'
-    _LOGS_PATH = os.environ.get('TOSKOSE_LOGS_PATH')
+    _LOGS_PATH = os.environ.get('TOSKOSE_LOGS_PATH', DEFAULT_LOGS_PATH)
 
-    _APP_CONFIG_PATH = os.environ.get('TOSKOSE_CONFIG_PATH')
-    _APP_MANIFEST_PATH = os.environ.get('TOSKOSE_MANIFEST_PATH')
-    _APP_MODE = os.environ.get('TOSKOSE_APP_MODE', default='development')
+    _APP_MODE = os.environ.get('TOSKOSE_APP_MODE', DEFAULT_APP_MODE)
+    _APP_VERSION = os.environ.get('TOSKOSE_APP_VERSION', DEFAULT_APP_VERSION)
 
-    _APP_VERSION = os.environ.get('TOSKOSE_APP_VERSION')
-
-class ToscaConfig(object):
+class ToskoseConfig(object):
     """ TOSCA Configuration 
     
     """
     
-    _TOSCA_CONFIG_NAME = os.environ.get('TOSKOSE_TOSCA_CONFIG_NAME')
-    _TOSCA_CONFIG_PATH = os.environ.get('TOSKOSE_TOSCA_CONFIG_PATH')
+    APP_CONFIG_PATH = os.environ.get('TOSKOSE_CONFIG_PATH', DEFAULT_CONFIG_PATH)
+    APP_MANIFEST_PATH = os.environ.get('TOSKOSE_MANIFEST_PATH', DEFAULT_MANIFEST_PATH)
+
 
 class FlaskConfig(object):
     """ Flask Configuration
@@ -45,7 +51,7 @@ class FlaskConfig(object):
     ERROR_404_HELP: disable the automagically hint on 404 response messages
     """
 
-    SECRET_KEY = os.environ.get('SECRET_KEY', default=_default_flask_secret_key)
+    SECRET_KEY = os.environ.get('SECRET_KEY', DEFAULT_FLASK_SECRET_KEY)
     DEBUG = False
     TESTING = False
     ERROR_404_HELP = False
