@@ -42,25 +42,28 @@ class LoggingFacility:
             logs_path = self.__create_default_log_path()
 
         if not os.path.exists(logs_path):
-            sys.exit('failed to setup logging')
+            self._logger.warn(
+                'Failed to setup logging: {} is not available. Logging will NOT be stored.'.format(
+                    logs_path))
+        else:
 
-        now = datetime.datetime.now()
-        logs_path = os.path.join(logs_path, ('log_' + now.strftime("%Y-%m-%d") + '.log'))
+            now = datetime.datetime.now()
+            logs_path = os.path.join(logs_path, ('log_' + now.strftime("%Y-%m-%d") + '.log'))
 
-        """ File Handler """
-        self._file_handler = logging.handlers.RotatingFileHandler(
-            logs_path,
-            maxBytes=10240,
-            backupCount=10)
+            """ File Handler """
+            self._file_handler = logging.handlers.RotatingFileHandler(
+                logs_path,
+                maxBytes=10240,
+                backupCount=10)
 
-        self._file_handler.setFormatter(self.formatter)
-        self._file_handler.setLevel(logging.INFO)
+            self._file_handler.setFormatter(self.formatter)
+            self._file_handler.setLevel(logging.INFO)
 
-        streamHandler = logging.StreamHandler()
-        streamHandler.setFormatter(self.formatter)
+            streamHandler = logging.StreamHandler()
+            streamHandler.setFormatter(self.formatter)
 
-        self._logger.addHandler(self._file_handler)
-        self._logger.addHandler(streamHandler)
+            self._logger.addHandler(self._file_handler)
+            self._logger.addHandler(streamHandler)
 
     def __create_default_log_path(self):
 
