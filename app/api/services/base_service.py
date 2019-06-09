@@ -5,11 +5,11 @@ from app.client.exceptions import SupervisordClientFatalError
 from app.client.exceptions import SupervisordClientProtocolError
 from app.client.exceptions import SupervisordClientFaultError
 
-from app.api.exception_handler import GenericFatalError
-from app.api.exception_handler import ClientFatalError
-from app.api.exception_handler import ClientOperationFailedError
-from app.api.exception_handler import ClientConnectionError
-from app.api.exception_handler import OperationNotValid
+from app.core.exceptions import FatalError
+from app.core.exceptions import ClientFatalError
+from app.core.exceptions import ClientOperationFailedError
+from app.core.exceptions import ClientConnectionError
+from app.core.exceptions import OperationNotValid
 
 
 class BaseService():
@@ -72,7 +72,7 @@ class BaseService():
                 except OperationNotValid:
                     raise
                 except:
-                    raise GenericFatalError('an unexpected error is occurred')
+                    raise FatalError('an unexpected error is occurred')
 
                 return res
 
