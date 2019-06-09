@@ -1,3 +1,4 @@
+from app.core.logging import LoggingFacility
 from app.core.toskose_manager import ToskoseManager
 
 from app.client.exceptions import SupervisordClientConnectionError
@@ -10,6 +11,10 @@ from app.core.exceptions import ClientFatalError
 from app.core.exceptions import ClientOperationFailedError
 from app.core.exceptions import ClientConnectionError
 from app.core.exceptions import OperationNotValid
+from app.core.exceptions import ResourceNotFoundError
+
+
+logger = LoggingFacility.get_instance().get_logger()
 
 
 class BaseService():
@@ -35,44 +40,41 @@ class BaseService():
         def decorator(func):
             def wrapper(self, *args, **kwargs):
 
+                node_id = kwargs.get('node_id')
+
                 """ validate the node identifier """
                 if validate_node:
-                    node_id = kwargs.get('node_id')
+                    
                     if not ToskoseManager.get_instance().get_node_data(
                         node_id=node_id):
                         raise ResourceNotFoundError(
                             'node {0} not found'.format(node_id))
 
                 """ get the client instance """
-                node_id = kwargs.get('node_id')
                 self._client = \
-                    ToskoseManager.get_instance().get_node_client_instance(node_id)
+                    ToskoseManager.get_instance().get_client(node_id)
 
-                """ check the reachability of the node """
-                self._is_reacheable = True
-                try:
-                    self._client.get_identification()
-                except SupervisordClientConnectionError as conn_err:
-                    self._is_reacheable = False
-
-                """ client connection validation """
+                """ validate connection: check the reachability of the node """
                 if validate_connection:
-                    if not self._is_reacheable:
-                        node_id = kwargs.get('node_id')
-
+                    if not self._client.reachable():
+                        logger.error('[{}] node cannot be reached. (connection error)'.format(node_id))
                         raise ClientConnectionError(
                             'node {0} is offline'.format(node_id))
 
                 try:
                     res = func(self, *args, **kwargs)
                 except (SupervisordClientFaultError, SupervisordClientProtocolError) as err:
-                    raise ClientOperationFailedError(err)
+                    logger.exception('Error: ')
+                    raise ClientOperationFailedError('Client operation failed') from err
                 except SupervisordClientFatalError as err:
-                    raise ClientFatalError(err)
-                except OperationNotValid:
-                    raise
+                    logger.exception('Error: ')
+                    raise ClientFatalError('A Fatal error from the client is occurred') from err
+                except OperationNotValid as err:
+                    logger.exception('Error: ')
+                    raise ClientFatalError('An invalid operation is occurred') from err
                 except:
-                    raise FatalError('an unexpected error is occurred')
+                    logger.exception('Error: ')
+                    raise FatalError('An unexpected error is occurred')
 
                 return res
 

@@ -30,29 +30,23 @@ class NodeService(BaseService):
         required = {
             'id': node_id,
             'hostname': node_data['hostname'],
-            'api_protocol': AppConfig._CLIENT_PROTOCOL,
             'docker': {
                 'image': node_data['docker']['name'],
                 'tag': node_data['docker']['tag']
             },
-            'reacheable': node_data['reachable'],
-            'standalone': node_data['standalone'],
+            'reachable': self._client.reachable(),
+            'standalone': self._client.standalone,
         }
 
-        # the node contains supervisord logic
-        not_standalone = dict()
-        if not node_data['standalone']:
-            not_standalone = {
+        # container with supervisord logic (not standalone)
+        optional = dict()
+        if client and not self._client.standalone:
+            optional = {
                 'port': node_data['port'],
                 'username': node_data['user'],
                 'password': node_data['password'],
                 'log_level': node_data['log_level'],
                 'api_protocol': AppConfig._CLIENT_PROTOCOL,
-            }
-
-        optional = dict()
-        if client:
-            optional = {
                 'api_version': client.get_api_version(),
                 'supervisor_version': client.get_supervisor_version(),
                 'supervisor_id': client.get_identification(),
@@ -64,7 +58,7 @@ class NodeService(BaseService):
                 'supervisor_pid': client.get_pid()
             }
 
-        return asdict(ToskoseNodeInfoDTO(**required, **not_standalone, **optional))
+        return asdict(ToskoseNodeInfoDTO(**required, **optional))
 
     def get_all_nodes_info(self) -> List:
         """ Retrieve info about the nodes, mixing info from the the application
@@ -77,18 +71,14 @@ class NodeService(BaseService):
         results = list()
         for node_id, node_data in nodes.items():
 
-            client = ToskoseManager.get_instance().get_client(node_id)
-            if not client.is_reachable():
-                logger.debug('[{}] node cannot be reached. (connection error)'.format(node_id))
-
-            node_data['reachable'] = client.is_reachable()
-            node_data['standalone'] = client.is_standalone()
-
+            self._client = \
+                ToskoseManager.get_instance().get_client(node_id)
+            
             results.append(
                 self.__build_node_info_dto(
                     node_id=node_id,
                     node_data=node_data,
-                    client=client))
+                    client=self._client))
 
         return results
 
@@ -102,7 +92,7 @@ class NodeService(BaseService):
         return self.__build_node_info_dto(
             node_id=node_id,
             node_data=node_data,
-            client=self._client if self._is_reacheable else None)
+            client=self._client)
 
 
     @BaseService.init_client(validate_node = True, validate_connection=True)
