@@ -163,7 +163,7 @@ class ToskoseManager():
         if node_id not in self._config['nodes']:
             raise ValueError('node {} not exist'.format(node_id))
 
-        logger.debug('Requested client instance for node {}'.format(node_id))
+        logger.debug('Requested client instance for node [{}]'.format(node_id))
         node_config = self.nodes[node_id]
 
         hostname = node_config['hostname']
@@ -182,12 +182,12 @@ class ToskoseManager():
                 logger.debug('Detected a standalone node container [{}]'.format(node_id))
                 return ToskoseClientFactory.create(
                     protocol_type=ProtocolType.DOCKER.name,
-                    host=hostname
+                    hostname=hostname
                 )
 
         return ToskoseClientFactory.create(
             protocol_type=AppConfig._CLIENT_PROTOCOL,
-            host=hostname,
+            hostname=node_config['hostname'],
             port=node_config['port'],
             username=node_config['user'],
             password=node_config['password'],

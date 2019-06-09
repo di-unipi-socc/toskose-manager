@@ -16,11 +16,10 @@ logger = LoggingFacility.get_instance().get_logger()
 
 class SupervisordBaseClient(BaseClient):
 
-    def __init__(self, **kwargs):
-        super(SupervisordBaseClient, self).__init__(**kwargs)
+    def __init__(self, *args, **kwargs):
+        super(SupervisordBaseClient, self).__init__(*args, **kwargs)
 
-    
-    def is_reacheable(self):
+    def reachable(self):
         # used to trigger connection
         try:
             self.get_identification()

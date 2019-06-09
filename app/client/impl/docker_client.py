@@ -1,5 +1,6 @@
-from app.core.logging import LoggingFacility
+import socket
 
+from app.core.logging import LoggingFacility
 from app.client.impl.base_client import BaseClient
 
 
@@ -12,6 +13,9 @@ class DockerClient(BaseClient):
     def __init__(self, **kwargs):
         super(DockerClient, self).__init__(**kwargs)
 
-    def is_reacheable(self):
-        #TODO
-        pass
+    def reachable(self):
+        try:
+            socket.gethostbyname(self.hostname)
+            return True
+        except socket.error:
+            return False

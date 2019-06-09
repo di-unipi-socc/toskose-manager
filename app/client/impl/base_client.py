@@ -1,19 +1,26 @@
+import socket
+
 from abc import ABC, abstractmethod
 from typing import List, Dict
+
+from app.core.logging import LoggingFacility
+
+
+logger = LoggingFacility.get_instance().get_logger()
 
 
 class BaseClient(ABC):
 
-    def __init__(self, host, port=None, username=None, password=None, standalone=False):
-        self._host = host
+    def __init__(self, hostname, port=None, username=None, password=None, standalone=False):
+        self._hostname = hostname
         self._port = port
         self._username = username
         self._password = password
         self._standalone = standalone
 
     @property
-    def host(self):
-        return self._host
+    def hostname(self):
+        return self._hostname
 
     @property
     def port(self):
@@ -31,8 +38,16 @@ class BaseClient(ABC):
     def standalone(self):
         return self._standalone
 
+    @property
+    def ipv4(self):
+        try:
+            return socket.gethostbyname(self.hostname)
+        except socket.error:
+            logger.warn('Failed to resolve hostname for hostname [{}]. Trying localhost..'.format(self.hostname))
+            return '127.0.0.1'
+
     @abstractmethod
-    def is_reacheable(self) -> bool:
+    def reachable(self) -> bool:
         """ Check if the destination is reachable.
         
         Returns:

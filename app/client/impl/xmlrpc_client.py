@@ -1,3 +1,4 @@
+from app.core.logging import LoggingFacility
 from xmlrpc.client import ServerProxy, ProtocolError, Fault
 from app.client.impl.supervisord_client import SupervisordBaseClient
 from app.client.exceptions import SupervisordClientFatalError
@@ -7,6 +8,9 @@ from app.client.exceptions import SupervisordClientFaultError
 
 import logging
 from enum import Enum, auto
+
+
+logger = LoggingFacility.get_instance().get_logger()
 
 
 class ErrorType(Enum):
@@ -41,19 +45,19 @@ class ToskoseXMLRPCclient(SupervisordBaseClient):
             try:
                 return func(self, *args, **kwargs)
             except ConnectionRefusedError as conn_err:
-                self.logger.error(
+                logger.error(
                     'Cannot establish a connection to http://{0}:{1}\n \
                     Error: {2}'.format(
-                        self._host,
-                        self._port,
+                        self.ipv4,
+                        self.port,
                         conn_err))
                 raise SupervisordClientConnectionError(
                     "A problem occurred while contacting the node",
-                    host=self._host,
-                    port=self._port)
+                    host=self.ipv4,
+                    port=self.port)
 
             except Fault as ferr:
-                self.logger.error('-- a Fault Error occurred -- \n \
+                logger.error('-- a Fault Error occurred -- \n \
                     - Error Code: {0}\n \
                     - Error Message: {1}'.format(
                         ferr.faultCode,
@@ -66,7 +70,7 @@ class ToskoseXMLRPCclient(SupervisordBaseClient):
                     ))
 
             except ProtocolError as perr:
-                self.logger.error('-- A Protocol Error occurred -- \n \
+                logger.error('-- A Protocol Error occurred -- \n \
                     - URL: {0}\n \
                     - HTTP/HTTPS headers: {1}\n \
                     - Error Code: {2}\n \
@@ -78,41 +82,45 @@ class ToskoseXMLRPCclient(SupervisordBaseClient):
                 raise SupervisordClientProtocolError('A protocol error occurred')
 
             except OverflowError as err:
-                self.logger.error('An overflow error occurred (an integer \
+                logger.error('An overflow error occurred (an integer \
                 exceeds the XML-RPC buffer limits)')
                 raise SupervisordClientFatalError('A fatal error occurred')
 
             except OSError as err:
-                self.logger.error('OS error: {0}'.format(err))
+                logger.error('OS error: {0}'.format(err))
                 raise SupervisordClientFatalError('A fatal error occurred')
 
             except ValueError as err:
-                self.logger.error('Value error: {0}'.format(err))
+                logger.error('Value error: {0}'.format(err))
                 raise SupervisordClientFatalError('A fatal error occurred')
             except:
-                self.logger.error('Unexpected Error: ')
+                logger.error('Unexpected Error: ')
                 raise SupervisordClientFatalError('A fatal error occurred')
 
         return wrapper
 
-    def __init__(self, **kwargs):
-        super(ToskoseXMLRPCclient, self).__init__(**kwargs)
+    def __init__(self, *args, **kwargs):
+        super(ToskoseXMLRPCclient, self).__init__(*args, **kwargs)
+        
         self._rpc_endpoint = \
             ToskoseXMLRPCclient.build_rpc_endpoint(**kwargs)
         self._instance = self.build()
 
-        self.logger = logging.getLogger(__class__.__name__)
-        self.logger.info(__class__.__name__ + "logger started")
+        logger = logging.getLogger(__class__.__name__)
+        logger.info(__class__.__name__ + "logger started")
+
+    def reachable(self):
+        return super(ToskoseXMLRPCclient, self).reachable()
 
     @staticmethod
-    def build_rpc_endpoint(host, port, username=None, password=None):
+    def build_rpc_endpoint(hostname, port, username=None, password=None):
         """ Build the RPC endpoint """
 
         auth = ""
         if username is not None and password is not None:
             auth = "{username}:{password}@".format(username=username, password=password)
 
-        return "http://{auth}{host}:{port}/RPC2".format(auth=auth, host=host, port=port)
+        return "http://{auth}{hostname}:{port}/RPC2".format(auth=auth, hostname=hostname, port=port)
 
     def build(self):
         """ Build a connection with the XML-RPC Server """
