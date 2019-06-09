@@ -1,5 +1,5 @@
 from xmlrpc.client import ServerProxy, ProtocolError, Fault
-from app.client.impl.base_client import BaseClient
+from app.client.impl.supervisord_client import SupervisordBaseClient
 from app.client.exceptions import SupervisordClientFatalError
 from app.client.exceptions import SupervisordClientConnectionError
 from app.client.exceptions import SupervisordClientProtocolError
@@ -32,7 +32,7 @@ def error_messages_builder(type, error, *args):
             err += 'An Unknown error occurred'
     return err
 
-class ToskoseXMLRPCclient(BaseClient):
+class ToskoseXMLRPCclient(SupervisordBaseClient):
 
     def _handling_failures(func):
         """ Handling connection errors or failures in RPC """

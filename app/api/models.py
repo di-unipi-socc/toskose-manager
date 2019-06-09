@@ -47,7 +47,11 @@ toskose_node = ns_toskose_node.model('ToskoseNode', {
             required=True,
             description='The tag of the docker image of the node'
         )
-    }))
+    })),
+    'standalone': fields.Boolean(
+        required=True,
+        description='Identify if the node is a standalone container (without any management logic) or not'
+    )
 })
 
 toskose_node_info = ns_toskose_node.inherit('ToskoseNodeInfo', toskose_node, {
