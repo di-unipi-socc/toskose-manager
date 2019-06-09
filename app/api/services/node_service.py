@@ -27,13 +27,16 @@ class NodeService(BaseService):
         mandatory = {
             'reacheable': bool(client),
             'id': node_id,
-            'name': node_data['name'],
-            'description': node_data['description'],
             'hostname': node_data['hostname'],
             'port': node_data['port'],
-            'username': node_data['username'],
+            'username': node_data['user'],
             'password': node_data['password'],
-            'api_protocol': AppConfig._CLIENT_PROTOCOL
+            'log_level': node_data['log_level'],
+            'api_protocol': AppConfig._CLIENT_PROTOCOL,
+            'docker': {
+                'image': node_data['docker']['name'],
+                'tag': node_data['docker']['tag']
+            }
         }
 
         optional = dict()

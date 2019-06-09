@@ -18,14 +18,6 @@ toskose_node = ns_toskose_node.model('ToskoseNode', {
         required=True,
         description='The node\'s identifier'
     ),
-    'name': fields.String(
-        required=True,
-        description='The node\'s name'
-    ),
-    'description': fields.String(
-        required=True,
-        description='The node\'s description'
-    ),
     'hostname': fields.String(
         required=True,
         description='The node\'s hostname'
@@ -41,7 +33,21 @@ toskose_node = ns_toskose_node.model('ToskoseNode', {
     'password': fields.String(
         required=True,
         description='The node\'s password'
-    )
+    ),
+    'log_level': fields.String(
+        required=True,
+        description='The node\'s log level'
+    ),
+    'docker': fields.Nested(ns_toskose_node.model('Docker', {
+        'image': fields.String(
+            required=True,
+            description='The docker image of the node'
+        ),
+        'tag': fields.String(
+            required=True,
+            description='The tag of the docker image of the node'
+        )
+    }))
 })
 
 toskose_node_info = ns_toskose_node.inherit('ToskoseNodeInfo', toskose_node, {
