@@ -23,7 +23,7 @@ RUN apt-get update -qq \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
     && python -m ensurepip \
-    && pip install -r requirements.txt \
+    && pip install --no-cache-dir -r requirements.txt \
     && chmod +x entrypoint.sh
 
 ENTRYPOINT ["/bin/bash", "-c", "/toskose/source/entrypoint.sh"]
