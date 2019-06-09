@@ -8,14 +8,20 @@ class BaseError(Exception):
     def __str__(self):
         return self.message
 
-class ResourceNotFoundError(BaseError):
-    """ Raised when a resource cannot be found (e.g. node) """
+class FatalError(BaseError):
+    """ Raised when a fatal error is occurred. """
 
     def __init__(self, message):
         super().__init__(message)
 
-class ClientConnectionError(BaseError):
-    """ Raised when a communication fails """
+class ClientFatalError(BaseError):
+    """ Raised when a fatal error occurred in the client """
+
+    def __init__(self, message):
+        super().__init__(message)
+
+class ResourceNotFoundError(BaseError):
+    """ Raised when a resource cannot be found (e.g. node) """
 
     def __init__(self, message):
         super().__init__(message)
@@ -26,8 +32,8 @@ class ClientOperationFailedError(BaseError):
     def __init__(self, message):
         super().__init__(message)
 
-class ClientFatalError(BaseError):
-    """ Raised when a fatal error occurred in the client """
+class ClientConnectionError(BaseError):
+    """ Raised when a communication fails """
 
     def __init__(self, message):
         super().__init__(message)
@@ -40,12 +46,6 @@ class OperationNotValid(BaseError):
 
 class ConfigurationError(BaseError):
     """ Raised when a configuration file is not valid. """
-
-    def __init__(self, message):
-        super().__init__(message)
-
-class FatalError(BaseError):
-    """ Raised when a fatal error is occurred. """
 
     def __init__(self, message):
         super().__init__(message)
