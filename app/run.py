@@ -22,6 +22,7 @@ bcrypt = Bcrypt()
 
 
 def create_app():
+
     app = Flask(__name__)
 
     """ dynamically load configuration based on mode (prod, dev, test) """
@@ -49,18 +50,7 @@ def create_app():
 
 if __name__ == "__main__":
 
-    """ Logging """
-    LoggingFacility()
-
     try:
-
-        """ Load App Configuration
-
-        ToskoseManager is initialized for the first time here, then it can be
-        used overall the application environment by calling the singleton instance
-        from the class.
-        """
-        ToskoseManager().get_instance().load()
 
         """ Create the Flask Application with the application factory"""
         flask_app = create_app()

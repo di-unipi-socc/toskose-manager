@@ -1,5 +1,6 @@
 import os
 import sys
+import app
 
 
 DEFAULT_FLASK_SECRET_KEY = 'to-iterate-is-human-to-recurse-divine'
@@ -7,7 +8,7 @@ DEFAULT_FLASK_SECRET_KEY = 'to-iterate-is-human-to-recurse-divine'
 DEFAULT_CONFIG_PATH = '/toskose/config'
 DEFAULT_MANIFEST_PATH = '/toskose/manifest'
 DEFAULT_LOGS_PATH = '/logs/toskose'
-DEFAULT_APP_VERSION = 'Unknown'
+DEFAULT_APP_VERSION = '{}-dev'.format(app.__version__)
 DEFAULT_APP_MODE = 'development'
 
 DEFAULT_CLIENT_PROTOCOL = 'XMLRPC'
