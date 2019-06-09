@@ -68,6 +68,18 @@ services:
     container_name: thinking-manager-dev
     ports:
     - "5000:5000/tcp"
+    volumes:
+    # Mounts the project folder to '/workspace'. The target path inside the container
+    # should match what your application expects. In this case, the compose file is
+    # in a sub-folder, so we will mount '..'. We'll then reference this as the
+    # workspaceFolder in '.devcontainer/devcontainer.json' so VS Code starts here.
+    - .:/toskose/source
+
+    # This lets you avoid setting up Git again in the container
+    - ~/.gitconfig:/root/.gitconfig
+
+    # Overrides default command so things don't shut down after the process ends.
+    command: sleep infinity
     
 networks:
   toskose-network:
