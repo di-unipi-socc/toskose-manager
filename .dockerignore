@@ -1,8 +1,11 @@
 .git
 .dockerignore
 __pycache__
-venv/
+.venv/
+.vscode/
 logs/
 Dockerfile
-Dockerfile.old
+Dockerfile-dev
 boot-dev.sh
+.travis.yml
+README.md

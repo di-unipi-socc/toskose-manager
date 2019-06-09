@@ -1,0 +1,40 @@
+ARG PYTHON_VERSION=3.7.2
+ARG TEST_CASE=thinking
+
+FROM python:${PYTHON_VERSION}-slim
+
+ARG TEST_CASE
+
+ENV TOSKOSE_MANAGER_PORT=10000
+ENV TOSKOSE_APP_MODE=development
+ENV TOSKOSE_LOGS_PATH=/logs/toskose
+ENV TOSKOSE_CONFIG_PATH=/toskose/config
+ENV TOSKOSE_MANIFEST_PATH=/toskose/manifest
+
+ENV FLASK_APP=/toskose/source/app/run.py
+ENV FLASK_DEBUG=1
+ENV FLASK_ENV="docker"
+
+RUN mkdir -p /toskose/ /logs/toskose
+WORKDIR /toskose/source
+
+COPY . .
+
+RUN apt-get update -qq \
+    && apt-get install -y --no-install-recommends \
+    > /dev/null \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
+    && python -m ensurepip \
+    && pip install --no-cache-dir -r requirements.txt
+
+WORKDIR /toskose/config
+COPY ./tests/data/${TEST_CASE}/config/ .
+
+WORKDIR /toskose/manifest
+COPY ./tests/data/${TEST_CASE}/manifest/ .
+
+WORKDIR /toskose/source
+
+EXPOSE 5000
+CMD [ "flask", "run", "--host=0.0.0.0", "--port", "5000" ]
