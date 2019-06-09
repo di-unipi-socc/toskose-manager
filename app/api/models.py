@@ -87,7 +87,7 @@ toskose_node_info = ns_toskose_node.inherit('ToskoseNodeInfo', toskose_node, {
         required=True,
         description='The PID of the supervisord process'
     ),
-    'reacheable': fields.Boolean(
+    'reachable': fields.Boolean(
         required=True,
         description='A system message for reporting any errors occurred'
     )
@@ -109,15 +109,16 @@ def default_supervisor_state():
 class ToskoseNodeInfoDTO:
     """ Info about a Toskose Node (DTO) """
 
-    reacheable: bool
     id: str
-    name: str
-    description: str
     hostname: str
-    port: str
-    username: str
-    password: str
-    api_protocol: str
+    docker: Dict
+    reachable: bool
+    standalone: bool
+    port: str = 'No Data'
+    username: str = 'No Data'
+    password: str = 'No Data'
+    log_level: str = 'No Data'
+    api_protocol: str = 'No Data'
     api_version: str = 'No Data'
     supervisor_version: str = 'No Data'
     supervisor_id: str = 'No Data'
