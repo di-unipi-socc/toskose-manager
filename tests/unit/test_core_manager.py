@@ -38,6 +38,5 @@ def test_get_client():
         
         # test
         cfg = Loader().load(os.path.join(root_dir, 'config/toskose.yml'))
-        with pytest.raises(socket.gaierror):
-            for k,v in cfg['nodes'].items():
-                client = ToskoseManager.get_instance().get_client(k)
+        for k,v in cfg['nodes'].items():
+            client = ToskoseManager.get_instance().get_client(k)
