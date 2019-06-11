@@ -64,16 +64,16 @@ class BaseService():
                 try:
                     res = func(self, *args, **kwargs)
                 except (SupervisordClientFaultError, SupervisordClientProtocolError) as err:
-                    logger.exception('Error: ')
-                    raise ClientOperationFailedError('Client operation failed') from err
+                    logger.warn(err)
+                    raise ClientOperationFailedError(str(err)) from err
                 except SupervisordClientFatalError as err:
-                    logger.exception('Error: ')
+                    logger.warn(err)
                     raise ClientFatalError('A Fatal error from the client is occurred') from err
                 except OperationNotValid as err:
-                    logger.exception('Error: ')
+                    logger.warn(err)
                     raise ClientFatalError('An invalid operation is occurred') from err
                 except:
-                    logger.exception('Error: ')
+                    logger.warn(err)
                     raise FatalError('An unexpected error is occurred')
 
                 return res

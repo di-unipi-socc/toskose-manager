@@ -20,20 +20,19 @@ class ErrorType(Enum):
 def error_messages_builder(type, error, *args):
     """ Build error messages """
 
-    err = 'ERROR - '
     if type == ErrorType.FAULT:
         if error.faultCode == 70:
             """ NOT RUNNING """
-            err += 'Process {0} not running'.format(args[0])
+            err = 'Process {0} not running'.format(args[0])
         elif error.faultCode == 60:
             """ ALREADY STARTED """
-            err += 'Process {0} is already started'.format(args[0])
+            err = 'Process {0} is already started'.format(args[0])
         elif error.faultCode == 10:
             """ BAD NAME """
-            err += 'Process or group {0} not exist'.format(args[0])
+            err = 'Process/group {0} not exist'.format(args[0])
         else:
             """ UNKNOWN """
-            err += 'An Unknown error occurred'
+            err = 'An Unknown error occurred'
     return err
 
 class ToskoseXMLRPCclient(SupervisordBaseClient):
@@ -54,20 +53,20 @@ class ToskoseXMLRPCclient(SupervisordBaseClient):
                 raise SupervisordClientConnectionError(
                     "A problem occurred while contacting the node",
                     host=self.ipv4,
-                    port=self.port)
+                    port=self.port) from conn_err
 
             except Fault as ferr:
                 logger.error('-- a Fault Error occurred -- \n \
                     - Error Code: {0}\n \
                     - Error Message: {1}'.format(
                         ferr.faultCode,
-                        ferr.faultString))
+                        ferr.faultString))                   
                 raise SupervisordClientFaultError(
                     error_messages_builder(
                         ErrorType.FAULT,
                         ferr,
                         *args
-                    ))
+                    )) from ferr
 
             except ProtocolError as perr:
                 logger.error('-- A Protocol Error occurred -- \n \
@@ -79,23 +78,28 @@ class ToskoseXMLRPCclient(SupervisordBaseClient):
                         perr.headers,
                         perr.errcode,
                         perr.errmsg))
-                raise SupervisordClientProtocolError('A protocol error occurred')
+                raise SupervisordClientProtocolError(
+                    'A protocol error occurred') from perr
 
             except OverflowError as err:
                 logger.error('An overflow error occurred (an integer \
                 exceeds the XML-RPC buffer limits)')
-                raise SupervisordClientFatalError('A fatal error occurred')
+                raise SupervisordClientFatalError(
+                    'A fatal error occurred') from err
 
             except OSError as err:
                 logger.error('OS error: {0}'.format(err))
-                raise SupervisordClientFatalError('A fatal error occurred')
+                raise SupervisordClientFatalError(
+                    'A fatal error occurred') from err
 
             except ValueError as err:
                 logger.error('Value error: {0}'.format(err))
-                raise SupervisordClientFatalError('A fatal error occurred')
+                raise SupervisordClientFatalError(
+                    'A fatal error occurred') from err
             except:
                 logger.error('Unexpected Error: ')
-                raise SupervisordClientFatalError('A fatal error occurred')
+                raise SupervisordClientFatalError(
+                    'A fatal error occurred') from err
 
         return wrapper
 
