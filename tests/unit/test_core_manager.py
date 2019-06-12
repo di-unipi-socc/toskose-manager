@@ -7,7 +7,7 @@ import socket
 from distutils.dir_util import copy_tree
 
 from tests.helpers import full_path
-from app.core.toskose_manager import ToskoseManager
+from app.manager import ToskoseManager
 from app.core.loader import Loader
 
 # Note: set envs in tests

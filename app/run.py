@@ -13,7 +13,7 @@ from app.config import configs
 
 from app.core.exceptions import FatalError
 from app.core.logging import LoggingFacility
-from app.core.toskose_manager import ToskoseManager
+from app.manager import ToskoseManager
 
 
 basedir = os.path.abspath(os.path.dirname(__file__))

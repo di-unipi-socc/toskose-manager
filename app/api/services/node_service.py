@@ -2,7 +2,7 @@ from app.api.services.base_service import BaseService
 from app.core.logging import LoggingFacility
 from app.api.models import ToskoseNodeInfoDTO
 from app.api.models import ToskoseNodeLogDTO
-from app.core.toskose_manager import ToskoseManager
+from app.manager import ToskoseManager
 
 from app.client.exceptions import SupervisordClientConnectionError
 

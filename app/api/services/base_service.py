@@ -1,5 +1,5 @@
 from app.core.logging import LoggingFacility
-from app.core.toskose_manager import ToskoseManager
+from app.manager import ToskoseManager
 
 from app.client.exceptions import SupervisordClientConnectionError
 from app.client.exceptions import SupervisordClientFatalError
