@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 from typing import List, Dict
 
 from app.core.logging import LoggingFacility
+from app.core.exceptions import ClientConnectionError
 
 
 logger = LoggingFacility.get_instance().get_logger()
@@ -43,8 +44,8 @@ class BaseClient(ABC):
         try:
             return socket.gethostbyname(self.hostname)
         except socket.error:
-            logger.warn('Failed to resolve hostname for hostname [{}]. Trying localhost..'.format(self.hostname))
-            return '127.0.0.1'
+            logger.warn('Failed to resolve hostname [{}]'.format(self.hostname))
+            raise ClientConnectionError('Connection failed')
 
     @abstractmethod
     def reachable(self) -> bool:
