@@ -20,8 +20,8 @@ api = Api(
 from app.api.controllers.node_controller import ns as ns_node
 api.add_namespace(ns_node, path='/node')
 
-from app.api.controllers.subprocess_controller import ns as ns_subprocess
-api.add_namespace(ns_subprocess, path='/subprocess')
+# from app.api.controllers.component_controller import ns as ns_component
+# api.add_namespace(ns_component, path='/component')
 
 # API Exceptions handlers
 
@@ -34,16 +34,20 @@ def handle_client_fatal_error(error):
     return ({ 'message': '{0}'.format(error) }, 500)
 
 @api.errorhandler(ResourceNotFoundError)
-def handle_client_connection_error(error):
-    return ({ 'message': '{0}'.format(error) }, 400)
-
-@api.errorhandler(ClientOperationFailedError)
-def handle_client_protocol_error(error):
-    return ({ 'message': '{0}'.format(error) }, 400)
+def handle_client_resource_not_found_error(error):
+    return ({ 'message': '{0}'.format(error) }, 404)
 
 @api.errorhandler(ClientConnectionError)
 def handle_client_connection_error(error):
     return ({ 'message': '{0}'.format(error) }, 404)
+
+@api.errorhandler(ClientOperationFailedError)
+def handle_client_operation_failed_error(error):
+    return ({ 'message': '{0}'.format(error) }, 400)
+
+@api.errorhandler(ValueError)
+def handle_value_error(error):
+    return ({ 'message': '{0}'.format(error) }, 400)
 
 @api.errorhandler(OperationNotValid)
 def handle_operation_not_valid(error):
