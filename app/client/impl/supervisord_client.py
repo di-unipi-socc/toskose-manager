@@ -19,14 +19,6 @@ class SupervisordBaseClient(BaseClient):
     def __init__(self, *args, **kwargs):
         super(SupervisordBaseClient, self).__init__(*args, **kwargs)
 
-    def reachable(self):
-        # used to trigger connection
-        try:
-            self.get_identification()
-            return True
-        except SupervisordClientConnectionError as conn_err:
-            return False
-
     """ Supervisord Process Management """
 
     @abstractmethod

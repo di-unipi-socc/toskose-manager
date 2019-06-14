@@ -7,7 +7,9 @@ gunicorn==19.9.0
 schema==0.6.8
 ruamel.yaml==0.15.94
 jsonschema==3.0.1
+multipledispatch==0.6.0 # multimethods support
 tosca-parser==1.4.0
+docker==4.0.1
 pytest-docker==0.6.1
 pytest
 mock

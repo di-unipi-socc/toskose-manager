@@ -1,4 +1,5 @@
 import socket
+import docker
 
 from app.core.logging import LoggingFacility
 from app.client.impl.base_client import BaseClient
