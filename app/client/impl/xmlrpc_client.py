@@ -23,13 +23,16 @@ def error_messages_builder(type, error, *args):
     if type == ErrorType.FAULT:
         if error.faultCode == 70:
             """ NOT RUNNING """
-            err = 'Process {0} not running'.format(args[0])
+            err = 'Process {} not running'.format(args[0])
         elif error.faultCode == 60:
             """ ALREADY STARTED """
-            err = 'Process {0} is already started'.format(args[0])
+            err = 'Process {} is already started'.format(args[0])
+        elif error.faultCode == 20:
+            """ NO FILE """
+            err = 'Process {} doesn\'t have any log (never started)'.format(args[0])        
         elif error.faultCode == 10:
             """ BAD NAME """
-            err = 'Process/group {0} not exist'.format(args[0])
+            err = 'Process/group {} not exist'.format(args[0])
         else:
             """ UNKNOWN """
             err = 'An Unknown error occurred'
@@ -99,7 +102,7 @@ class ToskoseXMLRPCclient(SupervisordBaseClient):
             except:
                 logger.error('Unexpected Error: ')
                 raise SupervisordClientFatalError(
-                    'A fatal error occurred') from err
+                    'A fatal error occurred')
 
         return wrapper
 
@@ -114,7 +117,12 @@ class ToskoseXMLRPCclient(SupervisordBaseClient):
         logger.info(__class__.__name__ + "logger started")
 
     def reachable(self):
-        return super(ToskoseXMLRPCclient, self).reachable()
+        # used to trigger connection
+        try:
+            self.get_identification()
+            return True
+        except SupervisordClientConnectionError as conn_err:
+            return False
 
     @staticmethod
     def build_rpc_endpoint(hostname, port, username=None, password=None):
