@@ -27,7 +27,7 @@ services:
     - INPUT_DATA=/toskose/apps/api/artifacts/default_data.csv
     - INPUT_PORT=8080
     ports:
-    - "8080:8000/tcp"
+    - "8000:8080/tcp"
   node:
     image: giulen/thinking-node-toskosed:latest
     deploy: *id001
@@ -46,7 +46,7 @@ services:
     - INPUT_APIPORT=8000
     - INPUT_APIRESOURCE=thoughts
     ports:
-    - "3000:8080/tcp"
+    - "8080:3000/tcp"
   mongodb:
     image: giulen/thinking-mongodb-toskosed:latest
     deploy: *id001
@@ -67,13 +67,15 @@ services:
     build: 
       context: .
       dockerfile: Dockerfile-dev
+      args:
+        CASE_STUDY: thinking
     image: thinking-manager-dev:latest
     hostname: manager
     deploy: *id001
     networks: *id002
     container_name: thinking-manager-dev
     ports:
-    - "5000:5000/tcp"
+    - "10000:10000/tcp"
     volumes:
     # Mounts the project folder to '/workspace'. The target path inside the container
     # should match what your application expects. In this case, the compose file is

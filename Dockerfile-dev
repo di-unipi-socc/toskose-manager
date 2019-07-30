@@ -1,21 +1,29 @@
+# Dockerfile-dev for setting up the toskose manager in a development environment
+# passing the ARG TEST_CASE=<case_study_name> for switching between case studies
+# - thinking (default) - the Thinking case study
+# - sockshop - the Sock Shop case study
+#
+# Notes 
+# - It works only with Python 3.7+
+
 ARG PYTHON_VERSION=3.7.2
-ARG TEST_CASE=thinking
+ARG CASE_STUDY
 
 FROM python:${PYTHON_VERSION}-slim as builder
 
-ARG TEST_CASE
+ARG CASE_STUDY
 
+# see app/config.py for available options
 ENV TOSKOSE_MANAGER_PORT=10000
 ENV TOSKOSE_APP_MODE=development
 ENV TOSKOSE_LOGS_PATH=/logs/toskose
 ENV TOSKOSE_CONFIG_PATH=/toskose/config
-ENV TOSKOSE_MANIFEST_PATH=/toskose/manifest
+ENV TOSKOSE_TOSCA_MANIFEST_PATH=/toskose/manifest
 
 ENV FLASK_APP=/toskose/source/app/run.py
-ENV FLASK_DEBUG=1
-ENV FLASK_ENV="docker"
+ENV FLASK_ENV=development
 
-RUN mkdir -p /toskose/ /logs/toskose
+RUN mkdir -p /toskose/ ${TOSKOSE_LOGS_PATH}
 
 # prepare the development environment
 WORKDIR /toskose
@@ -30,18 +38,21 @@ RUN apt-get update -qq \
     && python -m ensurepip \
     && pip install --no-cache-dir -r requirements.txt
 
-# additional data used for testing
-WORKDIR /toskose/config
-COPY ./tests/data/${TEST_CASE}/config/ .
-
-# additional data used for testing (2)
-WORKDIR /toskose/manifest
-COPY ./tests/data/${TEST_CASE}/manifest/ .
-
 WORKDIR /toskose/source
+COPY ./app app/
 
-# into the docker-compose-dev
-# mount local source code dir to /toskose/source to persist changes
+WORKDIR /toskose/config
+COPY ./tests/data/${CASE_STUDY}/config/ .
 
-EXPOSE 5000/tcp
-#CMD [ "flask", "run", "--host=0.0.0.0", "--port", "5000" ]
+WORKDIR /toskose/manifest
+COPY ./tests/data/${CASE_STUDY}/manifest/ .
+
+FROM builder as release
+LABEL maintainer.name "Matteo Bogo" \
+      maintainer.email "matteo.bogo@protonmail.com"
+
+WORKDIR /toskose
+EXPOSE ${TOSKOSE_MANAGER_PORT}/tcp
+
+# run flask with VScode debugger
+#ENTRYPOINT flask run --host="0.0.0.0" --port ${TOSKOSE_MANAGER_PORT}
