@@ -25,7 +25,7 @@ RUN apt-get update -qq \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
     && python -m ensurepip \
     && pip install --no-cache-dir -r requirements.txt \
-    && chmod +x scripts/entrypoint.sh
+    && chmod +x entrypoint.sh
 
 FROM base as release
 LABEL maintainer.name "Matteo Bogo" \
@@ -33,4 +33,4 @@ LABEL maintainer.name "Matteo Bogo" \
 
 WORKDIR /toskose
 EXPOSE ${TOSKOSE_MANAGER_PORT}/tcp
-ENTRYPOINT ["/bin/bash", "-c", "/toskose/source/scripts/entrypoint.sh"]    
+ENTRYPOINT ["/bin/bash", "-c", "/toskose/source/entrypoint.sh"]    
