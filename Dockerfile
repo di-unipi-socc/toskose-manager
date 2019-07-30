@@ -25,7 +25,7 @@ RUN apt-get update -qq \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
     && python -m ensurepip \
     && pip install --no-cache-dir -r requirements.txt \
-    && chmod +x entrypoint.sh
+    && chmod +x scripts/entrypoint.sh
 
 FROM base as release
 LABEL maintainer.name "Matteo Bogo" \
