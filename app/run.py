@@ -16,28 +16,27 @@ from app.core.logging import LoggingFacility
 from app.manager import ToskoseManager
 
 
-basedir = os.path.abspath(os.path.dirname(__file__))
-
 bcrypt = Bcrypt()
 
 
 def create_app():
+    """ Flask application factory """
 
     app = Flask(__name__)
 
-    """ dynamically load configuration based on mode (prod, dev, test) """
+    # dynamically load configuration based on app mode (from env TOSKOSE_APP_MODE)
     app.config.from_object(configs[AppConfig._APP_MODE])
 
-    """ init flask extensions """
+    # init flask extensions/plugins
     bcrypt.init_app(app)
 
-    """ register blueprints """
+    # register blueprints
     from app.api import bp as bp_tosca_api
     app.register_blueprint(bp_tosca_api)
 
     if not app.debug and not app.testing:
 
-        """ remove default handler and add our custom handler """
+        # remove default handler and add a custom handler
         from flask.logging import default_handler
         app.logger.removeHandler(default_handler)
 
@@ -52,9 +51,7 @@ if __name__ == "__main__":
 
     try:
 
-        """ Create the Flask Application with the application factory"""
         flask_app = create_app()
-
         flask_app.app_context().push()
         flask_app.run()
 

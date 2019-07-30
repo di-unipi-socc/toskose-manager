@@ -1,15 +1,10 @@
-Flask==1.0.2
+flask==1.0.2
 flask-restplus==0.12.1
-flask-testing==0.7.1
 flask-bcrypt==0.7.1
 pyjwt==1.7.1
 gunicorn==19.9.0
 schema==0.6.8
 ruamel.yaml==0.15.94
 jsonschema==3.0.1
-multipledispatch==0.6.0 # multimethods support
 tosca-parser==1.4.0
 docker==4.0.1
-pytest-docker==0.6.1
-pytest
-mock
