@@ -10,16 +10,13 @@ from app.api.utils.utils import compute_uptime
 from app.core.exceptions import (ClientConnectionError, FatalError,
                                  ClientFatalError, ClientOperationFailedError,
                                  OperationNotValid, ResourceNotFoundError)
-from app.client.exceptions import (SupervisordClientConnectionError, 
-                                   SupervisordClientFatalError,
+from app.client.exceptions import (SupervisordClientFatalError,
                                    SupervisordClientProtocolError,
                                    SupervisordClientFaultError)
 from app.config import AppConfig
 
-from dataclasses import asdict
 from typing import List, Dict
 from enum import Enum, auto
-from multipledispatch import dispatch
 
 
 logger = LoggingFacility.get_instance().get_logger()
@@ -166,7 +163,7 @@ class NodeService(BaseService):
 
         return results
 
-    @initializer
+    @initializer()
     def node_info(self, node_id):
 
         node = ToskoseManager.get_instance().node_by_id(node_id)
@@ -198,7 +195,7 @@ class NodeService(BaseService):
             component_id, node_id))
         
 
-    @initializer
+    @initializer()
     def execute(self, *, node_id, component_id, operation, action, wait=True):
         """ Manage a lifecycle operation of a software component hosted on a container node.
 
@@ -254,7 +251,7 @@ class NodeService(BaseService):
 
         return self._client.stop_all_processes(wait)
 
-    @initializer
+    @initializer()
     def node_logs(self, *, node_id, action, offset=0, length=0):
         """ Manage node logs. """
 
@@ -265,7 +262,7 @@ class NodeService(BaseService):
         if action is LogsActionType.CLEAR:
             return self._client.clear_log()
 
-    @initializer
+    @initializer()
     def operation_logs(self, *, node_id, action, component_id, operation, 
                        offset=0, length=0, std_type='stdout'):
         """ Manage lifecycle operation logs. """
