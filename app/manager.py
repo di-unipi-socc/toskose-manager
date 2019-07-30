@@ -104,15 +104,15 @@ class ToskoseManager():
         # TODO
 
     def _merge_imports(manifest_dir):
-        
-        imports_dir = os.path.join(manifest_dir, 'imports')
-        if not os.path.exists(imports_dir):
-            raise FatalError('missing tosca imports dir')
+        pass
+        # imports_dir = os.path.join(manifest_dir, 'imports')
+        # if not os.path.exists(imports_dir):
+        #     raise FatalError('missing tosca imports dir')
 
-        for file in os.listdir(imports_dir):
-            shutil.move(os.path.join(imports_dir, file), manifest_dir)
+        # for file in os.listdir(imports_dir):
+        #     shutil.move(os.path.join(imports_dir, file), manifest_dir)
 
-        shutil.rmtree(imports_dir, ignore_errors=True)    
+        # shutil.rmtree(imports_dir, ignore_errors=True)    
 
     def _load(self, config_type, config_dir=None, config_name=None):
         """ Load a configuration file """
