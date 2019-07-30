@@ -10,6 +10,8 @@ DEFAULT_MANIFEST_PATH = '/toskose/manifest'
 DEFAULT_LOGS_PATH = '/logs/toskose'
 DEFAULT_APP_VERSION = '{}-dev'.format(app.__version__)
 DEFAULT_APP_MODE = 'development'
+DEFAULT_HOST = "0.0.0.0"
+DEFAULT_PORT = 10000
 
 DEFAULT_CLIENT_PROTOCOL = 'XMLRPC'
 
@@ -40,7 +42,7 @@ class ToskoseConfig(object):
     """
     
     APP_CONFIG_PATH = os.environ.get('TOSKOSE_CONFIG_PATH', DEFAULT_CONFIG_PATH)
-    APP_MANIFEST_PATH = os.environ.get('TOSKOSE_MANIFEST_PATH', DEFAULT_MANIFEST_PATH)
+    APP_MANIFEST_PATH = os.environ.get('TOSKOSE_TOSCA_MANIFEST_PATH', DEFAULT_MANIFEST_PATH)
 
 
 class FlaskConfig(object):

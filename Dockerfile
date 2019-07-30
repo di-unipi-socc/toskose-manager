@@ -4,9 +4,10 @@ ARG APP_VERSION
 FROM python:${PYTHON_VERSION}-slim as base
 ARG APP_VERSION
 ENV TOSKOSE_MANAGER_PORT=10000
+ENV TOSKOSE_APP_MODE=production
 ENV TOSKOSE_LOGS_PATH=/logs/toskose
 ENV TOSKOSE_CONFIG_PATH=/toskose/config
-ENV TOSKOSE_MANIFEST_PATH=/toskose/manifest
+ENV TOSKOSE_TOSCA_MANIFEST_PATH=/toskose/manifest
 ENV TOSKOSE_APP_VERSION=${APP_VERSION}
 
 # config dir contains the toskose configuration file
@@ -26,7 +27,10 @@ RUN apt-get update -qq \
     && pip install --no-cache-dir -r requirements.txt \
     && chmod +x entrypoint.sh
 
-ENTRYPOINT ["/bin/bash", "-c", "/toskose/source/entrypoint.sh"]
-
 FROM base as release
-    
+LABEL maintainer.name "Matteo Bogo" \
+      maintainer.email "matteo.bogo@protonmail.com"
+
+WORKDIR /toskose
+EXPOSE ${TOSKOSE_MANAGER_PORT}/tcp
+ENTRYPOINT ["/bin/bash", "-c", "/toskose/source/scripts/entrypoint.sh"]    
