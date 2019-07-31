@@ -56,17 +56,10 @@ class ToskoseManager():
         self._model = None
 
         self.initialization()
-
-    # def initializer(func):
-    #     def wrapper(self, *args, **kwargs):
-    #         if self.config is None or self.model is None:
-    #             logger.debug('Loading the configuration files..')
-    #             self.initialization()
-    #         return func(self, *args, **kwargs)
-    #     return wrapper
                     
     @staticmethod
     def _load_configurations(config_dir, config_name=None):
+        """ Manage the loading of configurations. """
 
         if config_name is None:
             configs = []
@@ -100,19 +93,17 @@ class ToskoseManager():
         
         e.g. check if the nodes are the same
         """
-        pass
-        # TODO
+        pass   
 
     def _merge_imports(manifest_dir):
-        pass
-        # imports_dir = os.path.join(manifest_dir, 'imports')
-        # if not os.path.exists(imports_dir):
-        #     raise FatalError('missing tosca imports dir')
+        imports_dir = os.path.join(manifest_dir, 'imports')
+        if not os.path.exists(imports_dir):
+            raise FatalError('missing tosca imports dir')
 
-        # for file in os.listdir(imports_dir):
-        #     shutil.move(os.path.join(imports_dir, file), manifest_dir)
+        for file in os.listdir(imports_dir):
+            shutil.move(os.path.join(imports_dir, file), manifest_dir)
 
-        # shutil.rmtree(imports_dir, ignore_errors=True)    
+        shutil.rmtree(imports_dir, ignore_errors=True) 
 
     def _load(self, config_type, config_dir=None, config_name=None):
         """ Load a configuration file """
@@ -141,8 +132,11 @@ class ToskoseManager():
                 if config_type == ConfigType.TOSCA_MANIFEST:
                     ToskoseManager._merge_imports(config_dir)
                     return ToscaParser().build_model(config_path) # also make validation
-
-                return validate_configuration(self._loader.load(config_path))
+                elif config_type == ConfigType.TOSKOSE_CONFIG:
+                    return validate_configuration(self._loader.load(config_path))
+                else:
+                    logger.error('configuration type {} not recognized. Abort.'.format(config_type))
+                    raise FatalError(CommonErrorMessages._DEFAULT_FATAL_ERROR_MSG)
 
             except (ValidationError, MalformedConfigurationError) as err:
                 logger.warn('An error is occurred during the validation of {}'.format(config_path))
@@ -150,6 +144,7 @@ class ToskoseManager():
                     os.path.basename(config_path))) from err
 
     def update_model(self):
+        """ Update the generated TOSCA model according to the Toskose config. """
         for container in self._model.containers:
             for node_id, node_data in self._config['nodes'].items():
                 if container.name == node_id:
@@ -164,22 +159,24 @@ class ToskoseManager():
                             # TODO update model with associated fields
                             # TODO ensure the config/model validation
                             # TODO ensure that config has exactly the fields
-                            # that are also in the model (no additional)
-                            # hope that the jsonschema in toskose tool is
-                            # working well, maybe :|
 
     def initialization(self):
         """ Initialization
         
-        - Loading configuration files
-        - Updating the TOSCA model representation
+        - Load configuration files (TOSCA Manifest + Toskose Config)
+        - Update the TOSCA model representation
         """
 
         self._config = self._load(ConfigType.TOSKOSE_CONFIG)
         self._model = self._load(ConfigType.TOSCA_MANIFEST)
+        if self._config is None or self._model is None:
+            logger.error('Failed to load the TOSCA manifest or the Toskose configuration files')
+            raise FatalError(CommonErrorMessages._DEFAULT_FATAL_ERROR_MSG)
+        
         self.update_model()
 
-    def validation(func):
+    def node_validation(func):
+        """ Decorator for validating a node """
         def wrapper(self, *args, **kwargs):
             if args[0] not in self._config['nodes']:
                 raise ResourceNotFoundError('node {} not exist'.format(args[0]))
@@ -188,28 +185,31 @@ class ToskoseManager():
 
     @property
     def nodes(self):
+        if self._model is None:
+            logger.warn("The TOSCA model was not initialized.")
+            self.initialization()
         return self._model.containers
 
-    @validation
+    @node_validation
     def node_by_id(self, node_id):
         for container in self._model.containers:
             if container.name == node_id:
                 return container
 
-    @validation
+    @node_validation
     def get_client(self, node_id):
 
         logger.debug('Requested client instance for node [{}]'.format(node_id))
         node_config = self._config['nodes'][node_id]
 
         # check if it's a standalone container (no supervisord logic)
-        # for container in self.nodes:
-        #     if container.name == node_id and not container.hosted:
-        #         logger.debug('Detected a standalone node container [{}]'.format(node_id))
-        #         return ToskoseClientFactory.create(
-        #             protocol_type=ProtocolType.DOCKER.name,
-        #             hostname=node_config['hostname']
-        #         )
+        for container in self.nodes:
+            if container.name == node_id and not container.hosted:
+                logger.debug('Detected a standalone node container [{}]'.format(node_id))
+                return ToskoseClientFactory.create(
+                    protocol_type=ProtocolType.DOCKER.name,
+                    hostname=node_config['hostname']
+                )
 
         return ToskoseClientFactory.create(
             protocol_type=AppConfig._CLIENT_PROTOCOL,
