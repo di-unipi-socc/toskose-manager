@@ -178,9 +178,10 @@ class ToskoseManager():
     def node_validation(func):
         """ Decorator for validating a node """
         def wrapper(self, *args, **kwargs):
-            if args[0] not in self._config['nodes']:
-                raise ResourceNotFoundError('node {} not exist'.format(args[0]))
-            return func(self, *args, **kwargs)
+            for container in self._model.containers:
+                if container.name == args[0]:
+                    return func(self, *args, **kwargs)
+            raise ResourceNotFoundError('node {} not exist'.format(args[0]))
         return wrapper
 
     @property
@@ -200,7 +201,6 @@ class ToskoseManager():
     def get_client(self, node_id):
 
         logger.debug('Requested client instance for node [{}]'.format(node_id))
-        node_config = self._config['nodes'][node_id]
 
         # check if it's a standalone container (no supervisord logic)
         for container in self.nodes:
@@ -208,9 +208,9 @@ class ToskoseManager():
                 logger.debug('Detected a standalone node container [{}]'.format(node_id))
                 return ToskoseClientFactory.create(
                     protocol_type=ProtocolType.DOCKER.name,
-                    hostname=node_config['hostname']
                 )
 
+        node_config = self._config['nodes'][node_id]
         return ToskoseClientFactory.create(
             protocol_type=AppConfig._CLIENT_PROTOCOL,
             hostname=node_config['hostname'],
