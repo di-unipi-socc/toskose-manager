@@ -20,9 +20,6 @@ api = Api(
 from app.api.controllers.node_controller import ns as ns_node
 api.add_namespace(ns_node, path='/node')
 
-# from app.api.controllers.component_controller import ns as ns_component
-# api.add_namespace(ns_component, path='/component')
-
 # API Exceptions handlers
 
 @api.errorhandler(FatalError)
