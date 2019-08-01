@@ -61,6 +61,10 @@ class NodeService(BaseService):
                 if client:
                     self._client = \
                         ToskoseManager.get_instance().get_client(node_id)
+
+                    if self._client.standalone:
+                        raise OperationNotValid('Cannot operate on a standalone container.')
+
                     if not self._client.reachable():
                         logger.error('[{}] node cannot be reached. (connection error)'.format(node_id))
                         raise ClientConnectionError(
@@ -89,39 +93,42 @@ class NodeService(BaseService):
         """
 
         docker_data = {
-            'hostname': node.hostname,
             'image': node.toskosed_image.name,
             'tag': node.toskosed_image.tag,
         }
 
-        supervisord_data = dict()
-        if client and client.reachable():
-            docker_data.update({ 'ip': client.ipv4 })
-            if not client.standalone:
-                supervisord_data = {
-                    'port': node.port,
-                    'username': node.user,
-                    'password': node.password,
-                    'log_level': node.log_level,
-                    'api_protocol': AppConfig._CLIENT_PROTOCOL,
-                    'api_version': client.get_api_version(),
-                    'supervisor_version': client.get_supervisor_version(),
-                    'supervisor_id': client.get_identification(),
-                    'supervisor_state':  \
-                        (lambda x : {
-                            'name': x['statename'],
-                            'code': x['statecode']
-                        })(client.get_state()),
-                    'supervisor_pid': client.get_pid()
-                }
+        supervisord = None
+        if not client.standalone:
+            supervisord_data = dict()
+            reachable = False
+            if client.reachable():
+                reachable = True
+                supervisord_data.update({ 'ip': client.ipv4 })
+            
+            supervisord_data = {
+                'hostname': node.hostname,
+                'port': node.port,
+                'username': node.user,
+                'password': node.password,
+                'log_level': node.log_level,
+                'api_protocol': AppConfig._CLIENT_PROTOCOL,
+                'api_version': client.get_api_version(),
+                'supervisor_version': client.get_supervisor_version(),
+                'supervisor_id': client.get_identification(),
+                'supervisor_state':  \
+                    (lambda x : {
+                        'name': x['statename'],
+                        'code': x['statecode']
+                    })(client.get_state()),
+                'supervisor_pid': client.get_pid(),
+                'hosted_components': [component.name for component in node.hosted], 
+            }
+            supervisord = SupervisordInfoDTO(**supervisord_data)
                 
         return ToskoseNodeInfoDTO(
             node_id=node.name,
-            hosted_components=[component.name for component in node.hosted],
-            reachable=client.reachable(),
-            standalone=client.standalone,
             docker=DockerInfoDTO(**docker_data),
-            supervisord=SupervisordInfoDTO(**supervisord_data)
+            supervisord=supervisord
         )
 
     @staticmethod
@@ -145,34 +152,26 @@ class NodeService(BaseService):
         )
 
     def get_all_nodes_info(self) -> List:
-        """ Retrieve info about the nodes, mixing info from the the application
+        """ Retrieve info about all the available nodes. """
+
+        return [self.node_info(node.name) for node in ToskoseManager.get_instance().nodes]
+
+    def node_info(self, node_id):
+        """ Retrieve info about a node mixing info from the the application
         configuration and info fetched from the Node API through the client.
         """
 
-        """ retrieve node data from the app configuration """
-        results = list()
-        for node in ToskoseManager.get_instance().nodes:
-
-            client = \
-                ToskoseManager.get_instance().get_client(node.name)
-            
-            results.append(
-                NodeService.__build_node_info_dto(
-                    node=node,
-                    client=client))
-
-        return results
-
-    @initializer()
-    def node_info(self, node_id):
-
         node = ToskoseManager.get_instance().node_by_id(node_id)
+        client = ToskoseManager.get_instance().get_client(node.name)
 
         return NodeService.__build_node_info_dto(
             node=node,
-            client=self._client)
+            client=client)
 
     def hosted_component_info(self, node_id, component_id):
+        """ Retrieve info about a component hosted on a node.
+        e.g. lifecycle operations available
+        """
 
         node = ToskoseManager.get_instance().node_by_id(node_id)
         for component in node.hosted:
@@ -187,13 +186,12 @@ class NodeService(BaseService):
                         logger.debug('Extracting custom interfaces [{0}] from [{1}]'.format(
                             interface_k, component_id))
                         result += [custom_int for custom_int in interface_v.keys()]
-            return HostedComponentInfoDTO(
-                component_id=component_id,
-                lifecycle_operations=result)
+                return HostedComponentInfoDTO(
+                    component_id=component_id,
+                    lifecycle_operations=result)
                         
         raise ResourceNotFoundError('{0} not hosted on node {1}'.format(
             component_id, node_id))
-        
 
     @initializer()
     def execute(self, *, node_id, component_id, operation, action, wait=True):
@@ -284,32 +282,12 @@ class NodeService(BaseService):
         if action is LogsActionType.CLEAR:
             return self._client.clear_process_log(name)
 
-    # @initializer
-    # def shutdown(self, *, node_id):
-    #     logger.debug('Shutdown of node [{}] in progress'.format(node_id))
-    #     return self._client.shutdown()
-    
-    # @initializer
-    # def restart(self, *, node_id):
-    #     logger.debug('Restarting of node [{}] in progress'.format(node_id))
-    #     return self._client.restart()
-
-    # @initializer
-    # def reload_config(self, *, node_id):
-    #     logger.debug('Reloading configuration of node [{}] in progress'.format(node_id))
-    #     return self._client.reload_config()
-
-    """ Node Management """
-    @initializer(client=False)
-    def start_node(self, *, node_id, restart=False):
-
-        return 'not implemented yet'
-
-    @initializer(client=False)
-    def stop_node(self, *, node_id):
-        return 'not implemented yet'
-
     """ not implemented """
+
+    def reload_config(self):
+        """ Reload the Supervisord config """
+        #self._client.reload_config()
+        pass
 
     def send_remote_comm_event(self, *, node_id, type, data):
         """ not implemented yet """

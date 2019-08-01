@@ -1,8 +1,8 @@
 import socket
 import docker
 
-from app.core.logging import LoggingFacility
 from app.client.impl.base_client import BaseClient
+from app.core.logging import LoggingFacility
 
 
 logger = LoggingFacility.get_instance().get_logger()
@@ -15,8 +15,4 @@ class DockerClient(BaseClient):
         super(DockerClient, self).__init__(**kwargs)
 
     def reachable(self):
-        try:
-            socket.gethostbyname(self.hostname)
-            return True
-        except socket.error:
-            return False
+        pass

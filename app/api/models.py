@@ -18,28 +18,7 @@ toskose_node = ns_toskose_node.model('ToskoseNode', {
         required=True,
         description='The node\'s identifier'
     ),
-    'hosted_components': fields.List(
-        fields.String,
-        required=True,
-        description='A list of software components hosted on the node'
-    ),
-    'reachable': fields.Boolean(
-        required=True,
-        description='A system message for reporting any errors occurred'
-    ),
-    'standalone': fields.Boolean(
-        required=True,
-        description='Identify if the node is a standalone container (without any management logic) or not'
-    ),
     'docker': fields.Nested(ns_toskose_node.model('Docker', {
-        'hostname': fields.String(
-            required=True,
-            description='The node\'s hostname'
-        ),
-        'ip': fields.String(
-            required=True,
-            description='The IPv4 of the node'
-        ),
         'image': fields.String(
             required=True,
             description='The docker image of the node'
@@ -53,6 +32,14 @@ toskose_node = ns_toskose_node.model('ToskoseNode', {
 
 toskose_node_info = ns_toskose_node.inherit('ToskoseNodeInfo', toskose_node, {
     'supervisord': fields.Nested(ns_toskose_node.model('Supervisord', {
+        'hostname': fields.String(
+            required=True,
+            description='The node\'s hostname'
+        ),
+        'ip': fields.String(
+            required=True,
+            description='The IPv4 of the node'
+        ),
         'port': fields.String(
             required=True,
             description='The node\'s port'
@@ -99,7 +86,16 @@ toskose_node_info = ns_toskose_node.inherit('ToskoseNodeInfo', toskose_node, {
         'supervisor_pid': fields.String(
             required=True,
             description='The PID of the supervisord process'
-        )
+        ),
+        'hosted_components': fields.List(
+            fields.String,
+            required=True,
+            description='A list of software components hosted on the node'
+        ),
+        'reachable': fields.Boolean(
+            required=True,
+            description='A system message for reporting any errors occurred'
+        ),
     }))
 })
 
@@ -113,10 +109,8 @@ Node DTO
 class DockerInfoDTO:
     """ Node Docker info """
     
-    hostname: str
     image: str
     tag: str
-    ip: str = ''
 
 def default_supervisor_state():
     return {
@@ -124,10 +118,15 @@ def default_supervisor_state():
         'code': ''
     }
 
+def default_hosted_components():
+    return []
+
 @dataclass(frozen=True)
 class SupervisordInfoDTO:
     """ Node Supervisord info """
 
+    hostname: str = ''
+    ip: str = ''
     port: str = ''
     username: str = ''
     password: str = ''
@@ -138,17 +137,16 @@ class SupervisordInfoDTO:
     supervisor_id: str = ''
     supervisor_state: Dict = field(default_factory=default_supervisor_state)
     supervisor_pid: str = ''
+    hosted_components: List = field(default_factory=default_hosted_components)
+    reachable: bool = False
 
 @dataclass(frozen=True)
 class ToskoseNodeInfoDTO:
     """ Info about a Toskose Node (DTO) """
 
     node_id: str
-    hosted_components: List
-    reachable: bool
-    standalone: bool
     docker: DockerInfoDTO
-    supervisord: SupervisordInfoDTO
+    supervisord: SupervisordInfoDTO = None
 
 """
 Hosted Component Schema

@@ -18,14 +18,19 @@ class NodeOperation(Resource):
 
 @ns.route('/')
 class ToskoseNodeList(NodeOperation):
+    
     @ns.marshal_list_with(toskose_node_info)
     def get(self):
         """ The list of nodes info """
         return NodeService().get_all_nodes_info()
 
-node_parser = reqparse.RequestParser()
-node_parser.add_argument('restart', type=inputs.boolean,
-    default=False)
+@ns.route('/reload')
+class ToskoseManagerReload(NodeOperation):
+
+    def post(self):
+        """ Re-initialize the manager """
+        return 'OK' if node_service.reload() \
+            else ns.abort(500, message='failed to reload the manager')
 
 @ns.route('/<string:node_id>')
 @ns.param('node_id', 'the node identifier')
@@ -35,18 +40,7 @@ class ToskoseNode(NodeOperation):
     @ns.marshal_with(toskose_node_info)
     def get(self, node_id):
         """ The current state of a node """
-        return NodeService().node_info(node_id=node_id)
-
-    @ns.expect(node_parser, validate=True)
-    def post(self, **kwargs):
-        """ Start/Restart a node """
-        return node_service.start_node(
-            **kwargs,
-            restart=node_parser.parse_args()['restart'])
-
-    def delete(self, **kwargs):
-        """ Stop a node """
-        return node_service.stop_node(**kwargs)
+        return NodeService().node_info(node_id=node_id)        
 
 @ns.route('/<string:node_id>/operations')
 @ns.param('node_id', 'the node identifier')
@@ -173,37 +167,3 @@ class ComponentLifecycleOperationLog(NodeOperation):
             action=LogsActionType.CLEAR,
             **kwargs) \
             else ns.abort(500, message='failed to clear the log')
-
-
-
-# @ns.route('/<string:node_id>/shutdown')
-# @ns.param('node_id', 'the node identifier')
-# class ToskoseNodeShutdown(NodeOperation):
-
-#     def post(self, **kwargs):
-#         """ Shutdown the node """
-        
-#         return 'OK' if node_service.shutdown(
-#         **kwargs) \
-#         else ns.abort(500, message='Failed to shutdown')
-
-# @ns.route('/<string:node_id>/restart')
-# @ns.param('node_id', 'the node identifier')
-# class ToskoseNodeRestart(NodeOperation):
-
-#     def post(self, **kwargs):
-#         """ Restart the node """
-        
-#         return 'OK' if node_service.restart(
-#         **kwargs) \
-#         else ns.abort(500, message='Failed to restart')
-
-# class ToskoseNodeReloadConfig(NodeOperation):
-#     """ Reload Supervisord configuration """
-
-#     def post(self, **kwargs):
-#         """ Reload node configuration """
-
-#         return 'OK' if node_service.reload_config(
-#         **kwargs) \
-#         else ns.abort(500, message='Failed to reload config')

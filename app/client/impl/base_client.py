@@ -12,7 +12,7 @@ logger = LoggingFacility.get_instance().get_logger()
 
 class BaseClient(ABC):
 
-    def __init__(self, hostname, port=None, username=None, password=None, standalone=False):
+    def __init__(self, hostname=None, port=None, username=None, password=None, standalone=False):
         self._hostname = hostname
         self._port = port
         self._username = username
