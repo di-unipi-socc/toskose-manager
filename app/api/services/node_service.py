@@ -97,14 +97,8 @@ class NodeService(BaseService):
             'tag': node.toskosed_image.tag,
         }
 
-        supervisord = None
-        if not client.standalone:
-            supervisord_data = dict()
-            reachable = False
-            if client.reachable():
-                reachable = True
-                supervisord_data.update({ 'ip': client.ipv4 })
-            
+        supervisord_data = {}
+        if not client.standalone: 
             supervisord_data = {
                 'hostname': node.hostname,
                 'port': node.port,
@@ -112,23 +106,28 @@ class NodeService(BaseService):
                 'password': node.password,
                 'log_level': node.log_level,
                 'api_protocol': AppConfig._CLIENT_PROTOCOL,
-                'api_version': client.get_api_version(),
-                'supervisor_version': client.get_supervisor_version(),
-                'supervisor_id': client.get_identification(),
-                'supervisor_state':  \
-                    (lambda x : {
-                        'name': x['statename'],
-                        'code': x['statecode']
-                    })(client.get_state()),
-                'supervisor_pid': client.get_pid(),
-                'hosted_components': [component.name for component in node.hosted], 
-            }
-            supervisord = SupervisordInfoDTO(**supervisord_data)
+                'hosted_components': [component.name for component in node.hosted],
+            } 
+            if client.reachable():
+                supervisord_data.update({ 
+                    'reachable': True,
+                    'ip': client.ipv4,
+                    'api_version': client.get_api_version(),
+                    'supervisor_version': client.get_supervisor_version(),
+                    'supervisor_id': client.get_identification(),
+                    'supervisor_state':  \
+                        (lambda x : {
+                            'name': x['statename'],
+                            'code': x['statecode']
+                        })(client.get_state()),
+                    'supervisor_pid': client.get_pid(),
+                })          
                 
         return ToskoseNodeInfoDTO(
             node_id=node.name,
             docker=DockerInfoDTO(**docker_data),
-            supervisord=supervisord
+            supervisord=SupervisordInfoDTO(**supervisord_data),
+            standalone=client.standalone
         )
 
     @staticmethod

@@ -18,6 +18,10 @@ toskose_node = ns_toskose_node.model('ToskoseNode', {
         required=True,
         description='The node\'s identifier'
     ),
+    'standalone': fields.Boolean(	
+        required=True,	
+        description='Identify if the node is a standalone container (without any management logic) or not'	
+    ),
     'docker': fields.Nested(ns_toskose_node.model('Docker', {
         'image': fields.String(
             required=True,
@@ -145,8 +149,9 @@ class ToskoseNodeInfoDTO:
     """ Info about a Toskose Node (DTO) """
 
     node_id: str
+    standalone: bool
     docker: DockerInfoDTO
-    supervisord: SupervisordInfoDTO = None
+    supervisord: SupervisordInfoDTO
 
 """
 Hosted Component Schema

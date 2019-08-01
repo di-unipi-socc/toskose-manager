@@ -121,7 +121,7 @@ class ToskoseXMLRPCclient(SupervisordBaseClient):
         try:
             self.get_identification()
             return True
-        except SupervisordClientConnectionError as conn_err:
+        except SupervisordClientFatalError as conn_err:
             return False
 
     @staticmethod
