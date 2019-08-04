@@ -7,8 +7,8 @@ ARG VERSION
 LABEL org.label-schema.build-date=${BUILD_DATE} \
       org.label-schema.name="Toskose Manager" \
       org.label-schema.description="The orchestrator of Toskose" \
-      org.label-schema.url="https://github.com/di-unipi-socc/toskose-manager" \
-      org.label-schema.vcs=${VCS_REF} \
+      org.label-schema.vcs-url="https://github.com/di-unipi-socc/toskose-manager" \
+      org.label-schema.vcs-ref=${VCS_REF} \
       org.label-schema.vendor="SOCC Unipi" \
       org.label-schema.version=${VERSION} \
       org.label-schema.schema-version="1.0"
