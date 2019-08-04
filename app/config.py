@@ -15,6 +15,16 @@ DEFAULT_PORT = 10000
 
 DEFAULT_CLIENT_PROTOCOL = 'XMLRPC'
 
+def handle_printed_version(mode):
+    printed_version = 'Unknown'
+    if mode == 'development':
+        printed_version = 'dev'
+    elif mode == 'production':
+        printed_version = 'release'
+    elif mode == 'testing':
+        printed_version = 'testing'
+    return '{}-{}'.format(app.__version__, printed_version)
+
 
 class AppConfig(object):
     """ Application Configuration
@@ -34,7 +44,7 @@ class AppConfig(object):
     _LOGS_PATH = os.environ.get('TOSKOSE_LOGS_PATH', DEFAULT_LOGS_PATH)
 
     _APP_MODE = os.environ.get('TOSKOSE_APP_MODE', DEFAULT_APP_MODE)
-    _APP_VERSION = os.environ.get('TOSKOSE_APP_VERSION', DEFAULT_APP_VERSION)
+    _APP_VERSION = handle_printed_version(_APP_MODE)
 
 class ToskoseConfig(object):
     """ TOSCA Configuration 
