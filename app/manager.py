@@ -154,6 +154,12 @@ class ToskoseManager():
                                 data_value['name'],
                                 data_value['tag']
                             ))
+                        # TODO: workaround
+                        # change 'hostname' with 'alias' 
+                        # (also in the TOSCA model, toskose tool too)
+                        if 'alias' in data_key:
+                            setattr(container, 'hostname', data_value)
+
                         else:
                             setattr(container, data_key, data_value)
                             # TODO update model with associated fields
@@ -202,18 +208,13 @@ class ToskoseManager():
 
         logger.debug('Requested client instance for node [{}]'.format(node_id))
 
-        # check if it's a standalone container (no supervisord logic)
-        for container in self.nodes:
-            if container.name == node_id and not container.hosted:
-                logger.debug('Detected a standalone node container [{}]'.format(node_id))
-                return ToskoseClientFactory.create(
-                    protocol_type=ProtocolType.DOCKER.name,
-                )
-
         node_config = self._config['nodes'][node_id]
         return ToskoseClientFactory.create(
             protocol_type=AppConfig._CLIENT_PROTOCOL,
-            hostname=node_config['hostname'],
+            # TODO: workaround
+            # change 'hostname' with 'alias' 
+            # (also in the TOSCA model, toskose tool too)
+            hostname=node_config['alias'],
             port=node_config['port'],
             username=node_config['user'],
             password=node_config['password'],
