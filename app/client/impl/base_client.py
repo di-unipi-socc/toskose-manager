@@ -12,12 +12,11 @@ logger = LoggingFacility.get_instance().get_logger()
 
 class BaseClient(ABC):
 
-    def __init__(self, hostname=None, port=None, username=None, password=None, standalone=False):
+    def __init__(self, hostname=None, port=None, username=None, password=None):
         self._hostname = hostname
         self._port = port
         self._username = username
         self._password = password
-        self._standalone = standalone
 
     @property
     def hostname(self):
@@ -34,10 +33,6 @@ class BaseClient(ABC):
     @property
     def password(self):
         return self._password
-
-    @property
-    def standalone(self):
-        return self._standalone
 
     @property
     def ipv4(self):

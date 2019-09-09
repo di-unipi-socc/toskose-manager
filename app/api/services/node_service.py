@@ -62,7 +62,7 @@ class NodeService(BaseService):
                     self._client = \
                         ToskoseManager.get_instance().get_client(node_id)
 
-                    if self._client.standalone:
+                    if self._client is None:
                         raise OperationNotValid('Cannot operate on a standalone container.')
 
                     if not self._client.reachable():
@@ -98,7 +98,7 @@ class NodeService(BaseService):
         }
 
         supervisord_data = {}
-        if not client.standalone: 
+        if client: 
             supervisord_data = {
                 'hostname': node.hostname,
                 'port': node.port,
@@ -127,7 +127,7 @@ class NodeService(BaseService):
             node_id=node.name,
             docker=DockerInfoDTO(**docker_data),
             supervisord=SupervisordInfoDTO(**supervisord_data),
-            standalone=client.standalone
+            standalone=True if client is None else False
         )
 
     @staticmethod

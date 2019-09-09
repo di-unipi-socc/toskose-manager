@@ -208,6 +208,12 @@ class ToskoseManager():
 
         logger.debug('Requested client instance for node [{}]'.format(node_id))
 
+        # TODO: workaround
+        # use the TOSCA model instead
+        if node_id not in self._config['nodes']:
+            logger.debug('Detected a standalone node container [{}]'.format(node_id))
+            return None
+
         node_config = self._config['nodes'][node_id]
         return ToskoseClientFactory.create(
             protocol_type=AppConfig._CLIENT_PROTOCOL,
