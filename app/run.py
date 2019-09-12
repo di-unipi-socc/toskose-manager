@@ -5,7 +5,7 @@ import unittest
 import logging
 import logging.handlers as handlers
 
-from flask import Flask
+from flask import Flask, jsonify
 from flask_bcrypt import Bcrypt
 
 from app.config import AppConfig
@@ -29,6 +29,21 @@ def create_app():
 
     # init flask extensions/plugins
     bcrypt.init_app(app)
+
+    # API INFO
+    from app import __full_name__, __author__,__email__,__version__,__repository__
+    def api_info():
+        return jsonify({
+            "name": __full_name__,
+            "version": __version__,
+            "maintainer": __author__,
+            "contacts": __email__,
+            "repository": __repository__,
+        })
+    
+    
+    # Add a flask route to expose information
+    app.add_url_rule("/api/info", "info", view_func=api_info)
 
     # register blueprints
     from app.api import bp as bp_tosca_api
