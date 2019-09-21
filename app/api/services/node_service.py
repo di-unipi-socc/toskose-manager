@@ -1,23 +1,22 @@
 """ Container Node Services """
 
-from app.api.services.base_service import BaseService
-from app.core.logging import LoggingFacility
-from app.api.models import (DockerInfoDTO, SupervisordInfoDTO,
-                           ToskoseNodeInfoDTO, LifecycleOperationInfoDTO,
-                           HostedComponentInfoDTO)
-from app.manager import ToskoseManager
-from app.api.utils.utils import compute_uptime
-from app.core.exceptions import (ClientConnectionError, FatalError,
-                                 ClientFatalError, ClientOperationFailedError,
-                                 OperationNotValid, ResourceNotFoundError)
-from app.client.exceptions import (SupervisordClientFatalError,
-                                   SupervisordClientProtocolError,
-                                   SupervisordClientFaultError)
-from app.config import AppConfig
-
-from typing import List, Dict
 from enum import Enum, auto
+from typing import Dict, List
 
+from app.api.models import (DockerInfoDTO, HostedComponentInfoDTO,
+                            LifecycleOperationInfoDTO, SupervisordInfoDTO,
+                            ToskoseNodeInfoDTO)
+from app.api.services.base_service import BaseService
+from app.api.utils.utils import compute_uptime
+from app.client.exceptions import (SupervisordClientFatalError,
+                                   SupervisordClientFaultError,
+                                   SupervisordClientProtocolError)
+from app.config import AppConfig
+from app.core.exceptions import (ClientConnectionError, ClientFatalError,
+                                 ClientOperationFailedError, FatalError,
+                                 OperationNotValid, ResourceNotFoundError)
+from app.core.logging import LoggingFacility
+from app.manager import ToskoseManager
 
 logger = LoggingFacility.get_instance().get_logger()
 
@@ -26,6 +25,7 @@ class LifecycleOperationActionType(Enum):
     START = auto()
     STOP = auto()
     INFO = auto()
+    SIGNAL = auto()
 
 class LogsActionType(Enum):
     READ = auto()
@@ -193,7 +193,8 @@ class NodeService(BaseService):
             component_id, node_id))
 
     @initializer()
-    def execute(self, *, node_id, component_id, operation, action, wait=True):
+    def execute(self, *, node_id, component_id, operation, action, wait=True,
+                signal='SIGTERM'):
         """ Manage a lifecycle operation of a software component hosted on a container node.
 
         Args:
@@ -233,10 +234,12 @@ class NodeService(BaseService):
             return NodeService.__build_lifecycle_operation_info_dto(
                 node_id, component_id, operation,
                 self._client.get_process_info(name))
+        elif action is LifecycleOperationActionType.SIGNAL:
+            return self._client.signal_process(name, signal)
         else:
             logger.warn('An invalid action [{0}] is occurred.'.format(
                     action.name))
-            raise FatalError('A fatal error is occurred.')
+            raise FatalError('A fatal error is occurred.')        
 
     def stop_all_operations(self, *, node_id, wait=True):
         """ Stop all the lifecycle operations running on the node. 

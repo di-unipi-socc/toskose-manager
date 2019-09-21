@@ -14,7 +14,7 @@ LABEL org.label-schema.build-date=${BUILD_DATE} \
       org.label-schema.schema-version="1.0"
 
 ENV TOSKOSE_MANAGER_PORT=10000 \
-    TOSKOSE_APP_MODE=production \
+    TOSKOSE_APP_MODE=testing \
     TOSKOSE_LOGS_PATH=/logs/toskose \
     TOSKOSE_CONFIG_PATH=/toskose/config \
     TOSKOSE_TOSCA_MANIFEST_PATH=/toskose/manifest

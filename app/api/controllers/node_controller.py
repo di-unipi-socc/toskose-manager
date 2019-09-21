@@ -1,12 +1,12 @@
-from flask_restplus import Resource, Namespace, fields, reqparse, inputs
+from flask_restplus import Namespace, Resource, fields, inputs, reqparse
 
-from app.api.services.node_service import (NodeService, LifecycleOperationActionType,
-                                           LogsActionType)
-from app.api.models import ns_toskose_node as ns
-from app.api.models import (toskose_node_info, lifecycle_operation_info,
-                            hosted_component_info, 
+from app.api.services.node_service import LifecycleOperationActionType
+from app.api.models import (hosted_component_info, lifecycle_operation_info,
                             multi_lifecycle_operation_result)
-
+from app.api.models import ns_toskose_node as ns
+from app.api.models import toskose_node_info
+from app.api.services.node_service import (LifecycleOperationActionType,
+                                           LogsActionType, NodeService)
 
 node_service = NodeService()
 
@@ -15,7 +15,6 @@ node_service = NodeService()
 class NodeOperation(Resource):
     """ Base class for common configurations """
     
-
 @ns.route('/')
 class ToskoseNodeList(NodeOperation):
     
@@ -124,6 +123,28 @@ class ComponentLifecycleOperation(NodeOperation):
             action=LifecycleOperationActionType.STOP,
             **kwargs) \
             else ns.abort(500, message='failed to stop operation')
+
+operation_signal_parser = reqparse.RequestParser() \
+    .add_argument('signal_type', type=str, required=True,
+        default='SIGTERM',
+        help='the signal type')
+
+@ns.route('/<string:node_id>/<string:component_id>/<string:operation>/signal')
+@ns.param('operation', 'the lifecycle operation')
+@ns.param('component_id', 'the hosted component identifier')
+@ns.param('node_id', 'the node identifier')
+class ComponentLifecycleOperationSignal(NodeOperation):
+    """ Send a custom signal to a lifecycle operation. """
+
+    @ns.expect(operation_signal_parser, validate=True)
+    def post(self, **kwargs):
+        """ Signal a lifecycle operation. """
+
+        return 'OK' if node_service.execute(
+            action=LifecycleOperationActionType.SIGNAL,
+            signal=operation_signal_parser.parse_args()['signal_type'],
+            **kwargs) \
+            else ns.abort(500, message='failed to signal operation')
 
 # note: type=bool with Python default bool class not working
 # use inputs.boolean from restplus library instead
