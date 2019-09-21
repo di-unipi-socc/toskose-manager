@@ -2,7 +2,7 @@ title: Thinking Toskosed
 description: The thinking application toskosed
 nodes:
   maven:
-    hostname: maven
+    alias: maven
     port: 9001
     user: admin
     password: admin
@@ -11,7 +11,7 @@ nodes:
       name: giulen/thinking-maven-toskosed
       tag: latest
   node:
-    hostname: node
+    alias: node
     port: 9002
     user: admin
     password: admin
@@ -20,7 +20,7 @@ nodes:
       name: giulen/thinking-node-toskosed
       tag: latest
 manager:
-  hostname: manager
+  alias: manager
   port: 10001
   user: admin
   password: admin

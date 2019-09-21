@@ -16,6 +16,16 @@ logger = LoggingFacility.get_instance().get_logger()
 
 class SupervisordBaseClient(BaseClient):
 
+    SUPPORTED_SIGNALS = [
+        'SIGTERM', 
+        'SIGHUP', 
+        'SIGINT', 
+        'SIGQUIT', 
+        'SIGKILL', 
+        'SIGUSR1', 
+        'SIGUSR2'
+    ]
+
     def __init__(self, *args, **kwargs):
         super(SupervisordBaseClient, self).__init__(*args, **kwargs)
 

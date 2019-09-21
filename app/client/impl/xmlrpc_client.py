@@ -7,6 +7,7 @@ from app.client.exceptions import SupervisordClientProtocolError
 from app.client.exceptions import SupervisordClientFaultError
 
 import logging
+import textwrap
 from enum import Enum, auto
 
 
@@ -29,7 +30,12 @@ def error_messages_builder(type, error, *args):
             err = 'Process {} is already started'.format(args[0])
         elif error.faultCode == 20:
             """ NO FILE """
-            err = 'Process {} doesn\'t have any log (never started)'.format(args[0])        
+            err = 'Process {} doesn\'t have any log (never started)'.format(args[0])
+        elif error.faultCode == 11:
+            """ BAD SIGNAL """
+            err = 'Signal {} sent to {} is not valid'.format(
+                args[1], 
+                args[0])  
         elif error.faultCode == 10:
             """ BAD NAME """
             err = 'Process/group {} not exist'.format(args[0])
@@ -59,11 +65,13 @@ class ToskoseXMLRPCclient(SupervisordBaseClient):
                     port=self.port) from conn_err
 
             except Fault as ferr:
-                logger.error('-- a Fault Error occurred -- \n \
-                    - Error Code: {0}\n \
-                    - Error Message: {1}'.format(
+                logger.error(textwrap.dedent('\
+                    A Fault Error is occurred: {} (code: {})\
+                    '.format(
+                        ferr.faultString, 
                         ferr.faultCode,
-                        ferr.faultString))                   
+                    )))                
+                
                 raise SupervisordClientFaultError(
                     error_messages_builder(
                         ErrorType.FAULT,
@@ -72,15 +80,18 @@ class ToskoseXMLRPCclient(SupervisordBaseClient):
                     )) from ferr
 
             except ProtocolError as perr:
-                logger.error('-- A Protocol Error occurred -- \n \
-                    - URL: {0}\n \
-                    - HTTP/HTTPS headers: {1}\n \
-                    - Error Code: {2}\n \
-                    - Error Message: {3}'.format(
+                logger.error(textwrap.dedent('\
+                    A Protocol Error is occurred: {} \
+                    [URL: {}]\
+                    [HTTP Headers: {}] \
+                    (code: {})\
+                    '.format(
+                        perr.errmsg,
                         perr.url,
                         perr.headers,
                         perr.errcode,
-                        perr.errmsg))
+                    )))
+
                 raise SupervisordClientProtocolError(
                     'A protocol error occurred') from perr
 
